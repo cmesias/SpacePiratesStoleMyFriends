@@ -1,0 +1,14 @@
+Programmer:
+- Carl Mesias (cmesias)
+
+Henrique Pinheiro (CEvent.cpp)
+- https://bitbucket.org/heinriques/
+
+
+################
+###### AK ######
+- https://www.youtube.com/watch?v=pZCOqm1DXQg
+
+
+/// audio
+grenadePickup = https://www.youtube.com/watch?v=jzxVXDNGwZc
