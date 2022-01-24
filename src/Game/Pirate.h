@@ -1,18 +1,18 @@
 /*
- * Zombie.h
+ * Pirate.h
  *
  *  Created on: May 31, 2017
  *      Author: Carl
  */
 
-#ifndef GAME_ZOMBIE_H_
-#define GAME_ZOMBIE_H_
+#ifndef GAME_PIRATE_H_
+#define GAME_PIRATE_H_
 
 #include "../Helper.h"
 #include "Players.h"
 #include "Maps.h"
 
-class Zombie : public Helper {
+class Pirate : public Helper {
 public:	// Media
 	LTexture gTexture;
 	LTexture gBoss;
@@ -43,8 +43,22 @@ public:
 
 
 	double timer;			// Used for shooting
-	bool attacking;			// zombie attacking
+	bool attacking;			// pirate attacking
 	double attackLength;	// Length of attack
+
+private:	// Shooting and Reloading animations
+
+	// For shooting animation
+	bool shooting;			// f the pirate is shooting
+	float atkSpeed;			// Attack speed
+	float atkSpeedTimer;	// Attack speed timer
+
+	// For reloading animation
+	int ammo;				// starting with 0 ammo
+	int magSize;			// max clip size
+	bool reloading;			// If the pirate is reloading
+	float reloadSpeed;		// Reload speed
+	float reloadTimer;		// Reload timer
 
 public:	// variables used for calculating shooting barrel coordinates
 
@@ -65,20 +79,21 @@ public:	// variables used for calculating shooting barrel coordinates
 	double barrelX, barrelY;
 
 public:
-	void Init(Zombie zombie[]);
+	void Init(Pirate pirate[]);
 	void Load(SDL_Renderer* gRenderer);
 	void Free();
 
-	void clear(Zombie zombie[]);
-	void spawn(Zombie zombie[], float x, float y,
+	void clear(Pirate pirate[]);
+	void spawn(Pirate pirate[], float x, float y,
 			   float w, float h, int imageW, int imageH,
 			   float angle, float speed,
 			   int type, double health,
 			   int distanceHeadIsFromCenterOfImage, int bulletW, int bulletH);
-	void update(Zombie zombie[], Particle particle[], Particle &p_dummy,
-				Map &map, Players &player, Mix_Chunk* sLazer,
+	void update(Pirate pirate[], Particle particle[], Particle &p_dummy,
+				Map &map, Players &player,
+				Mix_Chunk* sLazer, Mix_Chunk* sPistolReload,
 				int camx, int camy);
-	void render(SDL_Renderer* gRenderer, Zombie zombie[], int camx, int camy);
+	void render(SDL_Renderer* gRenderer, Pirate pirate[], int camx, int camy);
 };
 
-#endif /* GAME_ZOMBIE_H_ */
+#endif /* GAME_PIRATE_H_ */

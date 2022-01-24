@@ -40,7 +40,7 @@ void PlayGame::Init() {
     cap 				= true;
 
 	// Initialize
-	zom.Init(zombie);
+	pira.Init(pirate);
 	part.init(particles);
 	aste.init(asteroid);
 	enem.init(enemy);
@@ -132,7 +132,7 @@ void PlayGame::Load(LWindow &gWindow, SDL_Renderer *gRenderer) {
 	gTargetTexture.createBlank( gRenderer, screenWidth, screenHeight, SDL_TEXTUREACCESS_TARGET );
 
 	// load media for other classes
-	zom.Load(gRenderer);
+	pira.Load(gRenderer);
 	part.load(gRenderer);
 	aste.loadResources(gRenderer);
 	enem.load(gRenderer);
@@ -162,7 +162,7 @@ void PlayGame::Free() {
 	FreeAudioFiles();
 
 	// free media from other classes
-	zom.Free();
+	pira.Free();
 	player.freeResources();
 	part.free();
 	enem.free();
@@ -171,7 +171,7 @@ void PlayGame::Free() {
 }
 
 /* 5-31-2017
- * Change asteroid spawns to zombies
+ * Change asteroid spawns to pirates
  */
 
 
@@ -412,8 +412,8 @@ void PlayGame::Update(LWindow &gWindow, SDL_Renderer *gRenderer) {
 
 	// If Player is alive
 	if (player.alive) {
-		// update zombies
-		zom.update(zombie, particles, part, map, player, sLazer, camx, camy);
+		// update pirates
+		pira.update(pirate, particles, part, map, player, sLazer, sPistolReload, camx, camy);
 
 		// Update Enemy
 		enem.update(enemy,
@@ -433,19 +433,19 @@ void PlayGame::Update(LWindow &gWindow, SDL_Renderer *gRenderer) {
 	// Update Player Particle & Enemy collision check
 	//checkCollisionParticleEnemy(particles, part, enemy, player);
 
-	// Collision, particle & zombie
-	checkCollisionParticleZombie();
+	// Collision, particle & pirate
+	checkCollisionParticlePirate();
 
 	// Update Enemy Particle & Player collision check
 	checkCollisionParticlePlayer(particles, part, player);
 
-	// Collision: Grenade Particle & Zombie
+	// Collision: Grenade Particle & Pirate
 	checkCollisionGrenadePlayer();
 
 	// Update Asteroids: Wave re-spawn
 	//spawnAsteroidsNow2();
 
-	// Damage text: for zombie
+	// Damage text: for pirate
 	tex.update(text);
 
 	// center camera on target
@@ -511,8 +511,8 @@ void PlayGame::Render(SDL_Renderer *gRenderer, LWindow &gWindow) {
 				gFont13, gFont26,
 				{255,255,255}, part.count, gText);
 
-	// Render zombie's
-	zom.render(gRenderer, zombie, camx, camy);
+	// Render pirate's
+	pira.render(gRenderer, pirate, camx, camy);
 
 	// Render particles
 	part.renderStarParticle(particles, camx, camy, 1, gRenderer);
@@ -569,31 +569,31 @@ void PlayGame::RenderDebug(SDL_Renderer *gRenderer)
 			}
 		}
 
-		/* Render Zombie debug */
-		for (int i = 0; i < zom.max; i++) {
-			if (zombie[i].alive) {
+		/* Render Pirate debug */
+		for (int i = 0; i < pira.max; i++) {
+			if (pirate[i].alive) {
 				// Original box, untouched
-				SDL_Rect tempRect = {zombie[i].x-camx, zombie[i].y-camy, zombie[i].w, zombie[i].h};
+				SDL_Rect tempRect = {pirate[i].x-camx, pirate[i].y-camy, pirate[i].w, pirate[i].h};
 				SDL_SetRenderDrawColor(gRenderer, 255, 255, 255, 255);
 				SDL_RenderDrawRect(gRenderer, &tempRect);
 				// Box, centered
-				tempRect = {zombie[i].x2-camx, zombie[i].y2-camy, zombie[i].w, zombie[i].h};
+				tempRect = {pirate[i].x2-camx, pirate[i].y2-camy, pirate[i].w, pirate[i].h};
 				SDL_SetRenderDrawColor(gRenderer, 0, 255, 0, 255);
 				SDL_RenderDrawRect(gRenderer, &tempRect);
 
 				// Render circle
 				gCircle.setColor(255,255,255);
 				gCircle.setAlpha(180);
-				gCircle.render(gRenderer, zombie[i].x2-camx,
-						zombie[i].y2-camy,
-						zombie[i].w, zombie[i].h);
+				gCircle.render(gRenderer, pirate[i].x2-camx,
+						pirate[i].y2-camy,
+						pirate[i].w, pirate[i].h);
 
 				// Render angle Text
 				std::stringstream tempss;
-				tempss << zombie[i].health;
+				tempss << pirate[i].health;
 				gText.setAlpha(255);
 				gText.loadFromRenderedText(gRenderer, tempss.str().c_str(), {255,255,255}, gFont);
-				gText.render(gRenderer, zombie[i].x - camx, zombie[i].y-gText.getHeight() - camy, gText.getWidth(), gText.getHeight());
+				gText.render(gRenderer, pirate[i].x - camx, pirate[i].y-gText.getHeight() - camy, gText.getWidth(), gText.getHeight());
 
 			}
 		}
@@ -680,7 +680,7 @@ void PlayGame::RenderText(SDL_Renderer *gRenderer, LWindow &gWindow) {
 		}
 	}
 
-	// zombie count
+	// pirate count
 	tempss.str(std::string());
 	tempss << "x: " << player.x << " y: " << player.y;
 	gText.loadFromRenderedText(gRenderer, tempss.str().c_str(), {255, 255, 255, 255}, gFont26);
@@ -697,12 +697,12 @@ PlayGame::Result PlayGame::mousePressed(SDL_Event event){
 		}
 		if (event.button.button == SDL_BUTTON_RIGHT) {
 			// normal enemy
-			zom.spawn(zombie, mx+camx-80/2, my+camy-80/2,
+			pira.spawn(pirate, mx+camx-80/2, my+camy-80/2,
 					  80, 80, 160, 160,
 					  0.0, randDouble(3.6, 4.4), 0, 250,
 					  40, 57, 17);
 			// boss enemy
-			/*zom.spawn(zombie, mx+camx-250/2, my+camy-250/2,
+			/*pira.spawn(pirate, mx+camx-250/2, my+camy-250/2,
 					  250, 250, 512, 512,
 					  0.0, randDouble(3.6, 4.4), 1, 1000,
 					  119, 256, -49);*/
@@ -847,10 +847,10 @@ void PlayGame::checkCollisionParticleEnemy(Particle particle[], Particle &part, 
 }
 
 // Check collision: Player Particle and Enemy
-void PlayGame::checkCollisionParticleZombie() {
-	// Zombie
+void PlayGame::checkCollisionParticlePirate() {
+	// Pirate
 	for (int j = 0; j < 100; j++) {
-		if (zombie[j].alive){
+		if (pirate[j].alive){
 			// Particle
 			for (int i = 0; i < part.max; i++) {
 				if (particles[i].alive) {
@@ -859,26 +859,26 @@ void PlayGame::checkCollisionParticleZombie() {
 					if (particles[i].type != 2 && particles[i].type != 3){
 
 						// Check only if Particle is NOT the Enemy's Particle
-						if (particles[i].tag != zombie[j].tag){
+						if (particles[i].tag != pirate[j].tag){
 
-							// particle collision with zombie using a CIRCLE
-							float bmx = zombie[j].x2 + zombie[j].w/2;
-							float bmy = zombie[j].y2 + zombie[j].h/2;
+							// particle collision with pirate using a CIRCLE
+							float bmx = pirate[j].x2 + pirate[j].w/2;
+							float bmy = pirate[j].y2 + pirate[j].h/2;
 							float bmx2 = particles[i].x + particles[i].w/2;
 							float bmy2 = particles[i].y + particles[i].h/2;
 							float distance = sqrt((bmx - bmx2) * (bmx - bmx2)+
 												  (bmy - bmy2) * (bmy - bmy2));
 							// collision occurred
-							if (distance < zombie[j].radius + particles[i].w/2) {
+							if (distance < pirate[j].radius + particles[i].w/2) {
 
-								// reduce zombie health
-								zombie[j].health -= particles[i].damage;
+								// reduce pirate health
+								pirate[j].health -= particles[i].damage;
 
 								// spawn blood particle effect
 								for (double h=0.0; h< 360.0; h+=rand() % 10 + 10){
 									int rands = rand() % 9 + 2;
-									float newX = zombie[j].x+zombie[j].w/2;
-									float newY = zombie[j].y+zombie[j].h/2;
+									float newX = pirate[j].x+pirate[j].w/2;
+									float newY = pirate[j].y+pirate[j].h/2;
 									part.spawnParticleAngle(particles, "none", 2,
 														newX-rands/2,
 														newY-rands/2,
@@ -900,14 +900,14 @@ void PlayGame::checkCollisionParticleZombie() {
 								// spawn damage text
 								std::stringstream tempss;
 								tempss << particles[i].damage;
-								int randw = rand() % int(zombie[j].w);
-								tex.spawn(text, zombie[j].x+randw, zombie[j].y+zombie[j].h/2,
+								int randw = rand() % int(pirate[j].w);
+								tex.spawn(text, pirate[j].x+randw, pirate[j].y+pirate[j].h/2,
 										  0.0, -3.7, 255, tempss.str().c_str(), {255,255, 0});
 							}
 
-							/*if (particles[i].x + particles[i].w > zombie[j].x && particles[i].x < zombie[j].x + zombie[j].w
-									&& particles[i].y + particles[i].h > zombie[j].y
-									&& particles[i].y < zombie[j].y + zombie[j].h) {
+							/*if (particles[i].x + particles[i].w > pirate[j].x && particles[i].x < pirate[j].x + pirate[j].w
+									&& particles[i].y + particles[i].h > pirate[j].y
+									&& particles[i].y < pirate[j].y + pirate[j].h) {
 								particles[i].collide = true;
 							} else {
 								particles[i].collide = false;
@@ -921,14 +921,14 @@ void PlayGame::checkCollisionParticleZombie() {
 								particles[i].alive = false;
 								part.count--;
 
-								// reduce zombie health
-								zombie[j].health -= particles[i].damage;
+								// reduce pirate health
+								pirate[j].health -= particles[i].damage;
 
 								// spawn particle effect
 								for (double h=0.0; h< 360.0; h+=rand() % 10 + 10){
 									int rands = rand() % 3 + 8;
-									float newX = zombie[j].x+zombie[j].w/2;
-									float newY = zombie[j].y+zombie[j].h/2;
+									float newX = pirate[j].x+pirate[j].w/2;
+									float newY = pirate[j].y+pirate[j].h/2;
 									part.spawnParticleAngle(particles, 2,
 														newX-rands/2,
 														newY-rands/2,
@@ -946,14 +946,14 @@ void PlayGame::checkCollisionParticleZombie() {
 								// spawn damage text
 								std::stringstream tempss;
 								tempss << particles[i].damage;
-								tex.spawn(text, zombie[j].x+zombie[j].w/2, zombie[j].y+zombie[j].h/2, 0.0, -2.7, 255, tempss.str().c_str());
+								tex.spawn(text, pirate[j].x+pirate[j].w/2, pirate[j].y+pirate[j].h/2, 0.0, -2.7, 255, tempss.str().c_str());
 							}*/
 						}
 					}
 				}
 			}	// end Particle
 		}
-	}			// end Zombie
+	}			// end Pirate
 }
 
 // Check collision: Enemy Particle and Player
@@ -1087,16 +1087,16 @@ void PlayGame::checkCollisionGrenadePlayer() {
 
 					// Particle death
 					if (particles[i].time > particles[i].deathTimer) {
-						for (int j=0; j<zom.max; j++) {
-							if (zombie[j].alive) {
+						for (int j=0; j<pira.max; j++) {
+							if (pirate[j].alive) {
 
-								// zombie target
+								// pirate target
 								float bmx = particles[i].x+particles[i].w/2;
 								float bmy = particles[i].y+particles[i].h/2;
-								float bmx2 = zombie[j].x+zombie[j].w/2;
-								float bmy2 = zombie[j].y+zombie[j].h/2;
+								float bmx2 = pirate[j].x+pirate[j].w/2;
+								float bmy2 = pirate[j].y+pirate[j].h/2;
 
-								// zombie distance from target
+								// pirate distance from target
 								float distance = sqrt((bmx - bmx2) * (bmx - bmx2) + (bmy - bmy2) * (bmy - bmy2));
 								if (distance <= 0.5) {
 									distance = 0.5;
@@ -1106,15 +1106,15 @@ void PlayGame::checkCollisionGrenadePlayer() {
 								//if (distance < 104){
 									// apply knock-back
 									knockbackEffect(particles[i].x, particles[i].y, particles[i].w, particles[i].h,
-													zombie[j].x, zombie[j].y, zombie[j].w, zombie[j].h, zombie[j].vX, zombie[j].vY, 15);
+													pirate[j].x, pirate[j].y, pirate[j].w, pirate[j].h, pirate[j].vX, pirate[j].vY, 15);
 									// reduce health
-									zombie[j].health -= particles[i].damage;
+									pirate[j].health -= particles[i].damage;
 
 									// spawn damage text
 									std::stringstream tempss;
 									tempss << particles[i].damage;
-									int randw = rand() % int(zombie[j].w);
-									tex.spawn(text, zombie[j].x+randw, zombie[j].y+zombie[j].h/2,
+									int randw = rand() % int(pirate[j].w);
+									tex.spawn(text, pirate[j].x+randw, pirate[j].y+pirate[j].h/2,
 											  0.0, -3.7, 255, tempss.str().c_str(), {255,255, 0});
 								}
 							}
@@ -1243,7 +1243,7 @@ void PlayGame::spawnAsteroidsNow2()
 	}*/
 
 	// Check if there is 0 Asteroids
-	if (zom.count <= 0){
+	if (pira.count <= 0){
 		if (player.increment < 50) {
 			player.increment += rand() % 3 + 3;
 		}
@@ -1253,7 +1253,7 @@ void PlayGame::spawnAsteroidsNow2()
 			int randx 		= rand() % map.w;
 			int randy 		= rand() % map.h;
 			//s_spawn.spawn(spawner, 0+randx, 0+randy, randw, randh);
-			zom.spawn(zombie, map.x+randx, map.y+randy,
+			pira.spawn(pirate, map.x+randx, map.y+randy,
 					  80, 80, 128, 128,
 					  0.0, randDouble(3.6, 4.1), 0, 100,
 					  11, 57, 17);
@@ -1273,13 +1273,13 @@ void PlayGame::spawnAsteroidsNow2()
 void PlayGame::knockbackEffect(float targetX, float targetY, int targetW, int targetH,
 							   float objectX, float objectY, int objectW, int objectH,
 							   float &objectVX,float &objectVY, float force) {
-	// zombie target
+	// pirate target
 	float bmx2 = targetX+targetW/2;
 	float bmy2 = targetY+targetH/2;
 	float bmx  = objectX+objectW/2;
 	float bmy  = objectY+objectH/2;
 
-	// zombie distance from target
+	// pirate distance from target
 	float distance = sqrt((bmx - bmx2) * (bmx - bmx2) + (bmy - bmy2) * (bmy - bmy2));
 	if (distance <= 0.5) {
 		distance = 0.5;

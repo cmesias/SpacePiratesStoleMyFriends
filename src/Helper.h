@@ -8,6 +8,7 @@
 #ifndef LOCAL_HELPER_H_
 #define LOCAL_HELPER_H_
 
+#include <SDL2/SDL.h>
 #include "Game/Timers.h"
 
 class Helper {

@@ -11,10 +11,10 @@
 #include "Game/Asteroids.h"
 #include "Game/Enemies.h"
 #include "Game/Maps.h"
+#include "Game/Pirate.h"
 //#include "Game/Pause.h"
 #include "Game/Players.h"
 #include "Game/Spawners.h"
-#include "Game/Zombie.h"
 #include "Options.h"
 #include "Helper.h"
 
@@ -94,7 +94,7 @@ public:	// Scene textures
 	Text text[100];
 
 public:	// Other classes
-	Zombie zom;
+	Pirate pira;
 	Map map;
 	Particle part;
 	Asteroid aste;
@@ -105,7 +105,7 @@ public:	// Other classes
 	Players player;
 
 	// Class instance, multiple
-	Zombie zombie[100];
+	Pirate pirate[100];
 	Particle particles[512];
 	Asteroid asteroid[128];
 	Enemy enemy[8];
@@ -154,8 +154,8 @@ public:	// Functions mixed with other classes
 	// Check collision between Particle & Enemy
 	void checkCollisionParticleEnemy(Particle particle[], Particle &part, Enemy enemy[], Players &player);
 
-	// Check collision between Particle & Zombie
-	void checkCollisionParticleZombie();
+	// Check collision between Particle & Pirate
+	void checkCollisionParticlePirate();
 
 	// Check collision between Particle & Player
 	void checkCollisionParticlePlayer(Particle particle[], Particle &part, Players &player);
