@@ -24,6 +24,7 @@ void Options::LoadAudioFiles() {
 	sGrenadeExplode = Mix_LoadWAV("sounds/snd_grenade_explode.wav");
 	sGrenadePickup = Mix_LoadWAV("sounds/snd_grenade_pickup.wav");
 	sPistolReload = Mix_LoadWAV("sounds/snd_reload_pistol.wav");
+	sPirateHurt = Mix_LoadWAV("sounds/cmesias/snd_pirate_hurt.wav");
 
 	sAmbientMusic = Mix_LoadMUS("sounds/ambient_space.mp3");
 }
@@ -37,6 +38,7 @@ void Options::FreeAudioFiles() {
 	Mix_FreeChunk(sGrenadeExplode);
 	Mix_FreeChunk(sGrenadePickup);
 	Mix_FreeChunk(sPistolReload);
+	Mix_FreeChunk(sPirateHurt);
 	sRockBreak 		= NULL;
 	sAtariBoom 		= NULL;
 	sLazer 			= NULL;
@@ -44,7 +46,7 @@ void Options::FreeAudioFiles() {
 	sGrenade 		= NULL;
 	sGrenadeExplode = NULL;
 	sGrenadePickup = NULL;
-	sPistolReload = NULL;
+	sPirateHurt = NULL;
 }
 
 
@@ -136,6 +138,7 @@ void Options::applyCustomAudioCFG(int MUSIC_VOL, int SFX_VOL) {
 	Mix_VolumeChunk(sGrenadeExplode, SFX_VOL*(MASTER_VOL*0.01));
 	Mix_VolumeChunk(sGrenadePickup, SFX_VOL*(MASTER_VOL*0.01));
 	Mix_VolumeChunk(sPistolReload, SFX_VOL*(MASTER_VOL*0.01));
+	Mix_VolumeChunk(sPirateHurt, SFX_VOL*(MASTER_VOL*0.01));
 }
 
 void Options::applyOldAudioCFG() {
@@ -147,6 +150,7 @@ void Options::applyOldAudioCFG() {
 	Mix_VolumeChunk(sGrenadeExplode, SFX_VOL);
 	Mix_VolumeChunk(sGrenadePickup, SFX_VOL);
 	Mix_VolumeChunk(sPistolReload, SFX_VOL);
+	Mix_VolumeChunk(sPirateHurt, SFX_VOL);
 }
 
 void Options::applyMasterAudioCFG() {
@@ -158,6 +162,7 @@ void Options::applyMasterAudioCFG() {
 	Mix_VolumeChunk(sGrenadeExplode, SFX_VOL*(MASTER_VOL*0.01));
 	Mix_VolumeChunk(sGrenadePickup, SFX_VOL*(MASTER_VOL*0.01));
 	Mix_VolumeChunk(sPistolReload, SFX_VOL*(MASTER_VOL*0.01));
+	Mix_VolumeChunk(sPirateHurt, SFX_VOL*(MASTER_VOL*0.01));
 }
 
 //Get's input from user and returns it

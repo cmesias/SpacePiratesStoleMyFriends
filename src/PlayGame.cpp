@@ -27,6 +27,11 @@
 
 // TODO [ ] - make it so that when a grenade explodes, an Enemy will get hurt by it if its in the blast radius
 
+// TODO 1-25-2022. (Players.cpp) [ ] - the players bullets wrap around the edges of the map, fix this by destroying bullets that go off the map
+
+// TODO 1-25-2022. [ ] - Play SFX when an enemy is hit by a bullet from the player
+
+
 void PlayGame::Init() {
 	// Upon entry
     debug 				= false;
@@ -577,15 +582,15 @@ void PlayGame::RenderDebug(SDL_Renderer *gRenderer)
 				SDL_SetRenderDrawColor(gRenderer, 255, 255, 255, 255);
 				SDL_RenderDrawRect(gRenderer, &tempRect);
 				// Box, centered
-				tempRect = {pirate[i].x2-camx, pirate[i].y2-camy, pirate[i].w, pirate[i].h};
+				tempRect = {pirate[i].xCenter-camx, pirate[i].yCenter-camy, pirate[i].w, pirate[i].h};
 				SDL_SetRenderDrawColor(gRenderer, 0, 255, 0, 255);
 				SDL_RenderDrawRect(gRenderer, &tempRect);
 
 				// Render circle
 				gCircle.setColor(255,255,255);
 				gCircle.setAlpha(180);
-				gCircle.render(gRenderer, pirate[i].x2-camx,
-						pirate[i].y2-camy,
+				gCircle.render(gRenderer, pirate[i].xCenter-camx,
+						pirate[i].yCenter-camy,
 						pirate[i].w, pirate[i].h);
 
 				// Render angle Text
@@ -862,14 +867,17 @@ void PlayGame::checkCollisionParticlePirate() {
 						if (particles[i].tag != pirate[j].tag){
 
 							// particle collision with pirate using a CIRCLE
-							float bmx = pirate[j].x2 + pirate[j].w/2;
-							float bmy = pirate[j].y2 + pirate[j].h/2;
+							float bmx = pirate[j].xCenter + pirate[j].w/2;
+							float bmy = pirate[j].yCenter + pirate[j].h/2;
 							float bmx2 = particles[i].x + particles[i].w/2;
 							float bmy2 = particles[i].y + particles[i].h/2;
 							float distance = sqrt((bmx - bmx2) * (bmx - bmx2)+
 												  (bmy - bmy2) * (bmy - bmy2));
 							// collision occurred
 							if (distance < pirate[j].radius + particles[i].w/2) {
+
+								// Play impact sound effect
+								Mix_PlayChannel(-1, sPirateHurt, 0);
 
 								// reduce pirate health
 								pirate[j].health -= particles[i].damage;

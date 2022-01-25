@@ -83,8 +83,6 @@ void Pirate::spawn(Pirate pirate[], float x, float y,
 			pirate[i].realw 			= realw;
 			pirate[i].realh 			= realh;
 			pirate[i].radius 			= w/2;
-			pirate[i].x2 				= x + w/2;
-			pirate[i].y2 				= y + h/2;
 			pirate[i].speed 			= speed;
 			//pirate[i].vX 				= cos( (3.14159265/180)*(angle) );
 			//pirate[i].vY 				= sin( (3.14159265/180)*(angle) );
@@ -101,8 +99,8 @@ void Pirate::spawn(Pirate pirate[], float x, float y,
 			pirate[i].distanceHeadIsFromCenterOfImage	= distanceHeadIsFromCenterOfImage;
 			int newW					= distanceHeadIsFromCenterOfImage * (-Cos);
 			int newH 					= distanceHeadIsFromCenterOfImage * (-Sin);
-			pirate[i].x2 				= x+w/2 + newW - pirate[i].radius;
-			pirate[i].y2 				= y+h/2 + newH - pirate[i].radius;
+			pirate[i].xCenter 				= x+w/2 + newW - pirate[i].radius;
+			pirate[i].yCenter 				= y+h/2 + newH - pirate[i].radius;
 			//------------------------------------------------------------------------//
 			pirate[i].health			= health;
 			pirate[i].damage			= 5;
@@ -117,11 +115,12 @@ void Pirate::spawn(Pirate pirate[], float x, float y,
 			// Determine ammo and magazine size of pirate
 			// based on type of pirate being spawn
 			if (type == 0) {
-				pirate[i].atkSpeed = 6.75;
+				pirate[i].atkSpeed = 2.75;
 				pirate[i].ammo = 9;
 				pirate[i].magSize = 9;
 				pirate[i].reloadSpeed = 4.25;
 				pirate[i].reloadTimer = 0.0;
+				pirate[i].atkRange = 700;
 			}
 			if (type == 1) {
 				pirate[i].atkSpeed = 9.65;
@@ -129,6 +128,7 @@ void Pirate::spawn(Pirate pirate[], float x, float y,
 				pirate[i].magSize = 30;
 				pirate[i].reloadSpeed = 9.25;
 				pirate[i].reloadTimer = 0.0;
+				pirate[i].atkRange = 825;
 			}
 			pirate[i].atkSpeedTimer = 0.0;
 			pirate[i].shooting 		= false;
@@ -176,11 +176,20 @@ void Pirate::update(Pirate pirate[], Particle particle[], Particle &p_dummy,
 				pirate[i].distance = 1;
 			}
 
+			///////////////////////////////////////////////////////////////////////////////////////////////////
+			///////////////////////////////////////////////////////////////////////////////////////////////////
+			//------------------------- This code makes the pirate "walk" to the player ---------------------//
+
 			// pirate moves if target is less than 768 pixels and greater than 384 pixels away
 			float constVX = 0.0;
 			float constVY = 0.0;
 			// shootPlayerDistance = 384;
-			if (pirate[i].distance > 600 && pirate[i].distance < 800) {
+
+			// TODO [ ] BUG, if the pirate spawns within the player's attack range then it will not face the player
+			// 				 it will only shoot
+
+			// If the player's distance is > 400 pixels and < 400 pixels
+			if (pirate[i].distance > 400 && pirate[i].distance < pirate[i].atkRange) {
 				constVX = pirate[i].speed * (bmx - bmx2) / pirate[i].distance;
 				constVY = pirate[i].speed * (bmy - bmy2) / pirate[i].distance;
 				//pirate[i].x += pirate[i].speed * (bmx - bmx2) / pirate[i].distance;
@@ -194,11 +203,16 @@ void Pirate::update(Pirate pirate[], Particle particle[], Particle &p_dummy,
 				}
 			}
 
-			// Pirate shoots if target is 768 pixels away, start attack (attacks for 3 seconds)
-			// calculate some things for shooting
-			float radians = (3.1415926536/180)*(pirate[i].angle);
-			if (pirate[i].distance <= 880) {
+			//------------------------- This code makes the pirate "walk" to the player ---------------------//
+			///////////////////////////////////////////////////////////////////////////////////////////////////
+			///////////////////////////////////////////////////////////////////////////////////////////////////
 
+			///////////////////////////////////////////////////////////////////////////////////////////////////
+			///////////////////////////////////////////////////////////////////////////////////////////////////
+			//------------------------- This code makes the pirate "look" at the player ---------------------//
+			if (pirate[i].distance < pirate[i].atkRange) {
+
+				float radians = (3.1415926536/180)*(pirate[i].angle);
 				pirate[i].angle = atan2(bmy - bmy2,bmx - bmx2);
 				pirate[i].angle = pirate[i].angle * (180 / 3.1416);
 				if (pirate[i].angle < 0) {
@@ -210,73 +224,16 @@ void Pirate::update(Pirate pirate[], Particle particle[], Particle &p_dummy,
 				float Sin = floor(sin(radians)*10+0.5)/10;
 				int newW = pirate[i].distanceHeadIsFromCenterOfImage * (-Cos);
 				int newH = pirate[i].distanceHeadIsFromCenterOfImage * (-Sin);
-				pirate[i].x2 = pirate[i].x+pirate[i].w/2 + newW - pirate[i].radius;
-				pirate[i].y2 = pirate[i].y+pirate[i].h/2 + newH - pirate[i].radius;
 
-
-				/*
-				// calculate some things for shooting
-				float radians = (3.1415926536/180)*(pirate[i].angle);
-				float Cos = floor(cos(radians)*10+0.5)/10;
-				float Sin = floor(sin(radians)*10+0.5)/10;
-
-				// get player new center position
-
-
-				// calculate some things for shooting
-				float radians = (3.1415926536/180)*(pirate[i].angle);
-				float Cos = floor(cos(radians)*10+0.5)/10;
-				float Sin = floor(sin(radians)*10+0.5)/10;
-				int newW = 11 * (-Cos);
-				int newH = 11 * (-Sin);
-				pirate[i].x2 = pirate[i].x+pirate[i].w/2 + newW - pirate[i].radius;
-				pirate[i].y2 = pirate[i].y+pirate[i].h/2 + newH - pirate[i].radius;
-
-				double barrelW  = (57 * cos(radians) ) - (16 * sin(radians) );				// add this to center of pirate (this will give us the guns barrel position)
-				double barrelH  = (57 * sin(radians) ) + (16 * cos(radians) );
-				int realw = 0;															// pirate actual size in pixels
-				int realh = 0;															// pirate actual size in pixels
-				if (pirate[i].type == 0) {
-					realw = 128;															// pirate actual size in pixels
-					realh = 128;
-				}
-				else if (pirate[i].type == 1) {
-					realw = 512;															// pirate actual size in pixels
-					realh = 512;
-				}
-
-
-				double particleW = 24;														// particle collision size
-				double particleH = 24;
-				int wDifference = realw - pirate[i].w;										// get difference between pirate collision size and actual size (used to center bullets)
-				int hDifference = realh - pirate[i].h;
-				double barrelX = pirate[i].x+realw/2-wDifference/2 - particleW/2 + barrelW;	// get final position to spawn a particle
-				double barrelY = pirate[i].y+realh/2-hDifference/2 - particleH/2 + barrelH;
-				*/
-
-				// Enemy shooting
-				/*pirate[i].timer += 1;
-				if (pirate[i].timer > 45){
-					//pirate[i].vX = Cos * 11 - rand() % 8 + 5;
-					//pirate[i].vY = Sin * 11 - rand() % 8 + 5;
-					// restart shoo ttimer
-					pirate[i].timer = 0;
-					// play shoot sound effect
-					Mix_PlayChannel(3, sLazer, 0);
-					// spawn particle
-					p_dummy.spawnParticleAngle(particle, 1,
-							barrelX,
-							barrelY,
-							particleW, particleH,
-							pirate[i].angle, 11,
-						   5,
-						   {255, 255,0}, 1,
-						   0.0, 0.0,
-						   255, 0,
-						   100, 1,
-						   false, 0);
-				}*/
+				// Set pirates angle in relation to the player
+				// In other words, have the pirate face the player
+				pirate[i].xCenter = pirate[i].x+pirate[i].w/2 + newW - pirate[i].radius;
+				pirate[i].yCenter = pirate[i].y+pirate[i].h/2 + newH - pirate[i].radius;
 			}
+
+			//------------------------- This code makes the pirate "look" at the player ---------------------//
+			///////////////////////////////////////////////////////////////////////////////////////////////////
+			///////////////////////////////////////////////////////////////////////////////////////////////////
 
 				// Clone
 				if (pirate[i].type == 0) {
@@ -293,6 +250,7 @@ void Pirate::update(Pirate pirate[], Particle particle[], Particle &p_dummy,
 					 * With this distance you may add this to your objects x and y center,
 					 * and this will be where your particle will spawn
 					 */
+					float radians = (3.1415926536/180)*(pirate[i].angle);
 					double barrelW  = (pirate[i].bulletW * cos(radians) ) - (pirate[i].bulletH * sin(radians) );	// add this to center of pirate (this will give us the guns barrel position)
 					double barrelH  = (pirate[i].bulletW * sin(radians) ) + (pirate[i].bulletH * cos(radians) );
 
@@ -305,8 +263,8 @@ void Pirate::update(Pirate pirate[], Particle particle[], Particle &p_dummy,
 					// If not reloading
 					if (!pirate[i].reloading && !pirate[i].shooting) {
 
-						// If <= 805 pixels away from player
-						if (pirate[i].distance <= 805) {
+						// If distance from player is within attack range
+						if (pirate[i].distance < pirate[i].atkRange) {
 
 							// Start shooting animation
 							pirate[i].shooting = true;
@@ -430,6 +388,7 @@ void Pirate::update(Pirate pirate[], Particle particle[], Particle &p_dummy,
 					 * With this distance you may add this to your objects x and y center,
 					 * and this will be where your particle will spawn
 					 */
+					float radians = (3.1415926536/180)*(pirate[i].angle);
 					double barrelW  = (pirate[i].bulletW * cos(radians) ) - (pirate[i].bulletH * sin(radians) );	// add this to center of pirate (this will give us the guns barrel position)
 					double barrelH  = (pirate[i].bulletW * sin(radians) ) + (pirate[i].bulletH * cos(radians) );
 

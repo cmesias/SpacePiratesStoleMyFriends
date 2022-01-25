@@ -20,7 +20,7 @@ public:	// Media
 	const int max = 100;
 	bool asteroidsClear;
 public:
-	float x2, y2;
+	float xCenter, yCenter;
 	int radius;
 	float x,y;
 	float w,h;			// Enemy collision size
@@ -42,9 +42,12 @@ public:
 	bool onScreen;
 
 
+	// these may be deprecated soon
 	double timer;			// Used for shooting
 	bool attacking;			// pirate attacking
 	double attackLength;	// Length of attack
+
+	float atkRange;			// Pirate attack range
 
 private:	// Shooting and Reloading animations
 

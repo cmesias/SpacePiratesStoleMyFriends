@@ -24,6 +24,52 @@
 
 #include "Players.h"
 
+// Renders a circle
+int
+SDL_RenderDrawCircle(SDL_Renderer * renderer, int x, int y, int radius)
+{
+    int offsetx, offsety, d;
+    int status;
+
+    offsetx = 0;
+    offsety = radius;
+    d = radius -1;
+    status = 0;
+
+    while (offsety >= offsetx) {
+        status += SDL_RenderDrawPoint(renderer, x + offsetx, y + offsety);
+        status += SDL_RenderDrawPoint(renderer, x + offsety, y + offsetx);
+        status += SDL_RenderDrawPoint(renderer, x - offsetx, y + offsety);
+        status += SDL_RenderDrawPoint(renderer, x - offsety, y + offsetx);
+        status += SDL_RenderDrawPoint(renderer, x + offsetx, y - offsety);
+        status += SDL_RenderDrawPoint(renderer, x + offsety, y - offsetx);
+        status += SDL_RenderDrawPoint(renderer, x - offsetx, y - offsety);
+        status += SDL_RenderDrawPoint(renderer, x - offsety, y - offsetx);
+
+        if (status < 0) {
+            status = -1;
+            break;
+        }
+
+        if (d >= 2*offsetx) {
+            d -= 2*offsetx + 1;
+            offsetx +=1;
+        }
+        else if (d < 2 * (radius - offsety)) {
+            d += 2 * offsety - 1;
+            offsety -= 1;
+        }
+        else {
+            d += 2 * (offsety - offsetx - 1);
+            offsety -= 1;
+            offsetx += 1;
+        }
+    }
+
+    return status;
+}
+
+
 // Check collision between 2 objects
 bool Players::checkCollision(int x, int y, int w, int h, int x2, int y2, int w2, int h2){
 	bool collide;
@@ -226,6 +272,9 @@ void Players::reset(float spawnX, float spawnY, std::string newName, bool respaw
 	renderFlash 		= false;
 	tag 				= "player";
 
+	// New variables
+	shooting			= false;
+	recoilBloomAmount	= 1.0;
 
 	/* Player abilities */
 	grenades = 3;
@@ -308,12 +357,13 @@ void Players::fire(Particle particle[], Particle &p_dummy, int mx, int my,
 	 * With this distance you may add this to your objects x and y center,
 	 * and this will be where your particle will spawn
 	 */
-	barrelW  = (bulletW * cos(radians) ) - (bulletH * sin(radians) );	// add this to center of zombie (this will give us the guns barrel position)
+	barrelW  = (bulletW * cos(radians) ) - (bulletH * sin(radians) );	// add this to center of pirate (this will give us the guns barrel position)
 	barrelH  = (bulletW * sin(radians) ) + (bulletH * cos(radians) );
 
 	int wDifference = realw - w;
 	int hDifference = realh - h;
 
+	// Update x and y coordinates of the player's gun barrel
 	barrelX = x+realw/2-wDifference/2 - particleW/2 + barrelW;
 	barrelY = y+realh/2-hDifference/2 - particleH/2 + barrelH;
 
@@ -342,31 +392,94 @@ void Players::fire(Particle particle[], Particle &p_dummy, int mx, int my,
 				if (!delay){
 					delay= true;
 					if (powerup == 1) {
-						// recoil of gun
+
+						// Shooting state, on
+						shooting = true;
+
+						// recoil of gun and shoulder animation
 						recoilX = 11 * radianCos;
 						recoilY = 11 * radianSin;
+
 						// count up total shots
 						totalShot++;
+
 						// play audio
 						Mix_PlayChannel(1, sLazer, 0);
+
+						////////////////////////////////////////////////////////////////////////////////////////////////
+						////////////////////////////////////////////////////////////////////////////////////////////////
+						//------------------- Determines clockwise or counter-close wise direction -------------------//
+
+						// Random number of 0 or 1
+						int randir = rand() % 2;
+						int dir;
+						// Shoots a little counter-clockwise to cursor
+						if (randir == 0) { dir = -1; }
+						// Shoots a little clockwise to cursor
+						else { dir = 1; }
+
+						//------------------- Determines clockwise or counter-close wise direction -------------------//
+						////////////////////////////////////////////////////////////////////////////////////////////////
+						////////////////////////////////////////////////////////////////////////////////////////////////
+
+						////////////////////////////////////////////////////////////////////////////////////////////////
+						////////////////////////////////////////////////////////////////////////////////////////////////
+						//------------------------- Sometimes the bullet will hit the center -------------------------//
+
+						// Determine if the bullet will follow the bloom rules, or sometimes shoot in the center of your cursor
+						int followBloom = rand() % 2;
+						float angeledRecoil;
+
+						// Start shooting off-center of mouse (after 2 shots fired)
+						//if (recoilBloomAmount > 2) {
+						if (followBloom == 1) {
+
+							// Regular bloom direction. Option 1.
+							int value = recoilBloomAmount + 1;
+							float randRecoilSize = rand() % value + 1;
+							angeledRecoil = angle + (randRecoilSize * dir);
+
+							// Regular bloom direction. Option 2.
+							// ISSUE: as the bloom increases, direction of bullet shoots on the edges of the bloom amount
+							//angeledRecoil = angle + (recoilBloomAmount * dir);
+						}
+
+						// RNG - Shoot in the center every once in a while
+						else {
+							angeledRecoil = angle;
+						}
+
+						//------------------------- Sometimes the bullet will hit the center -------------------------//
+						////////////////////////////////////////////////////////////////////////////////////////////////
+						////////////////////////////////////////////////////////////////////////////////////////////////
+
 						// spawn particle
 						p_dummy.spawnParticleAngle(particle, tag, 0,
 								barrelX,
 								barrelY,
 								particleW, particleH,
-							   angle, 65,
+								angeledRecoil, 65,
 							   25,
 							   {255,255,255}, 1,
 							   1, 1,
 							   255, 0,
 							   100, 2,
 							   false, 0);
+
+						// Increase bloom amount every shot
+						if (recoilBloomAmount < recoilBloomAmountMax) {
+							recoilBloomAmount += 1;
+						}
+
 						// muzzle flash
 						renderFlash = true;
+
 						// subtract remaining grenades
-						ammo--;
+						//ammo--;
+
 						// Check if we ran out of ammo
 						if (ammo <= 0) {
+
 							// start reloading ammo
 							reload = true;
 						}
@@ -374,6 +487,12 @@ void Players::fire(Particle particle[], Particle &p_dummy, int mx, int my,
 				}
 			}
 		}
+	}
+
+	// No longer holding down trigger of gun
+	else {
+		// Shooting state, off
+		shooting = false;
 	}
 
 	// Reload
@@ -525,7 +644,6 @@ void Players::fire(Particle particle[], Particle &p_dummy, int mx, int my,
 	if (recoilY > 0) {
 		recoilY -= 2.5;
 	}
-
 }
 
 // Controls
@@ -868,6 +986,12 @@ void Players::update(Map &map,
 			}
 		}
 	}
+
+	// Recoil Bloom naturally goes down 8% each frame to 0 if not shooting
+	if (!shooting && recoilBloomAmount > 0) {
+		recoilBloomAmount -= 1;
+		if (recoilBloomAmount < 0) { recoilBloomAmount=0; }
+	}
 }
 
 // Render Player
@@ -953,18 +1077,16 @@ void Players::render(int mx, int my, int camx, int camy, LWindow gWindow, SDL_Re
 		}*/
 
 
-		// reticle
+		// Render cross-hair of player
 		double wedth = 21 * radianSin;
 		double hedth = 19 * radianCos;
-		SDL_SetRenderDrawColor(gRenderer, 255, 255, 0, 255);
-			SDL_RenderDrawLine(gRenderer, mx-16-wedth, my+hedth, mx+16-wedth, my+hedth);
-			SDL_RenderDrawLine(gRenderer, mx-wedth, my-16+hedth, mx-wedth, my+16+hedth);
+		SDL_SetRenderDrawColor(gRenderer, 255, 255, 255, 255);
+		SDL_RenderDrawLine(gRenderer, mx-16-wedth, my+hedth, mx+16-wedth, my+hedth);
+		SDL_RenderDrawLine(gRenderer, mx-wedth, my-16+hedth, mx-wedth, my+16+hedth);
 
-			/*SDL_Rect tempRect = {mx-24-wedth, my-24+hedth, 48, 48};
-			SDL_SetRenderDrawColor(gRenderer, 0, 255, 0, 255);
-			SDL_RenderDrawRect(gRenderer, &tempRect);*/
-
-
+		// Draw a circle bloom cross-hair
+		SDL_SetRenderDrawColor(gRenderer, 255, 255, 255, 255);
+		SDL_RenderDrawCircle(gRenderer, mx-wedth, my+hedth, recoilBloomAmount * 5);
 
 	}else{
 		// Continue YES or NO Screen
@@ -1063,12 +1185,14 @@ void Players::render(int mx, int my, int camx, int camy, LWindow gWindow, SDL_Re
 
 	std::stringstream tempsi;
 	tempsi.str( std::string() );
-	tempsi << "Highscore: " << highscore;
+	//tempsi << "Highscore: " << highscore;
+	tempsi << "recoilBloomAmount: " << recoilBloomAmount;
 	gText.loadFromRenderedText(gRenderer, tempsi.str().c_str(), {244, 144, 20}, gFont2);
 	gText.render(gRenderer, screenWidth-gText.getWidth()-15, 5, gText.getWidth(), gText.getHeight());
 
 	tempsi.str( std::string() );
-	tempsi << "Score: " << score;
+	//tempsi << "Score: " << score;
+	tempsi << "Shooting: " << shooting;
 	gText.loadFromRenderedText(gRenderer, tempsi.str().c_str(), {255,255,255}, gFont2);
 	gText.render(gRenderer, screenWidth-gText.getWidth()-15, 31, gText.getWidth(), gText.getHeight());
 

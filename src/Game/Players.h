@@ -103,7 +103,7 @@ public:	// variables
 	double bulletH 		= 21;	// is centered (have angle at 0.0 to test)
 	double particleW 	= 30;
 	double particleH 	= 30;
-	float AttackSpeed 	= 10;
+	float AttackSpeed = 10;
 	float delayT 		= 0;
 	bool delay 			= false;
 	bool initialshot 	= false;
@@ -111,6 +111,13 @@ public:	// variables
 	bool renderFlash	= false; // shuts off right after 1 frame
 	double recoilX = 0;			 // gun recoil
 	double recoilY = 0;
+
+public: // Shooting variables
+
+	bool shooting = false;
+	float recoilBloomAmount = 1.0;	// As the player shoots, bloom will increase
+	const float recoilBloomAmountMax = 10;
+public: // Health variables
 
 	// Lives
 	int lives = 1;
