@@ -5,6 +5,10 @@
  *      Author: Carl
  */
 
+// the "../" in the beginning means that it goes back one folder
+//#include "../Engine/Players.h"
+#include "Players.h"
+
 #include <iostream>
 #include <math.h>
 #include <stdio.h>
@@ -22,7 +26,6 @@
 
 //#include "Input.h"
 
-#include "Players.h"
 
 // Renders a circle
 int
@@ -283,6 +286,8 @@ void Players::reset(float spawnX, float spawnY, std::string newName, bool respaw
 	grenadesCDSpeed = 1;
 	grenadesCDMax = 60 * 5;
 	grenadeTrigger = false;
+
+	collectedKeys = 0;
 
 	if (!respawn){
 		score 			= 0;
@@ -1451,4 +1456,38 @@ void Players::updateJoystick(Players &player, SDL_Event &e){
 			break;
 		}
 	}
+}
+
+
+
+int Players::getTargetID() {
+	//return target.id;
+}
+
+float Players::getX() {
+	return x;
+}
+
+float Players::getY() {
+	return y;
+}
+
+float Players::getCenterX() {
+	return x+w/2;
+}
+
+float Players::getCenterY() {
+	return y+h/2;
+}
+
+float Players::getvX() {
+	return vX;
+}
+
+float Players::getvY() {
+	return vY;
+}
+
+float Players::getLookAngle() {
+	//return lookAngle;
 }

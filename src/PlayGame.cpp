@@ -16,10 +16,10 @@
 #include <SDL2/SDL_mixer.h>
 #include <SDL2/SDL_ttf.h>
 
-#include "LTexture.h"
-#include "Particless.h"
+#include "Engine/Particless.h"
 
 #include "PlayGame.h"
+#include "Engine/LTexture.h"
 
 // TODO [ ] - fix players class so that we can easily create more players
 // TODO [ ] - research how servers and clients talk to each other
@@ -31,6 +31,10 @@
 
 // TODO 1-25-2022. [ ] - Play SFX when an enemy is hit by a bullet from the player
 
+
+// TODO [ ] - add "ctrl" variable
+// TODO [ ] - fix when placing down a door or exit door, the placement is not lined up with the mouse, it is off center
+// TODO [ ] - look at door states, such as when the player has enough keys then draw the exit door
 
 void PlayGame::Init() {
 	// Upon entry
@@ -53,6 +57,11 @@ void PlayGame::Init() {
 	player.reset(map.x+map.w/2-player.w/2, map.y+map.h/2-player.h/2, "Player1", false);
 	player.loadScore();
 	tex.init(text);
+
+	// Opened door, closed door, spawn tile
+	rDoor[0] = {0, 0, 200, 200};
+	rDoor[1] = {200, 0, 200, 200};
+	rDoor[2] = {400, 0, 200, 200};
 }
 /*
 void PlayGame::saveCFG(std::string fileName){
@@ -123,6 +132,7 @@ void PlayGame::Load(LWindow &gWindow, SDL_Renderer *gRenderer) {
 	// load textures
 	gBG.loadFromFile(gRenderer, 		"resource/gfx/bg.png");
 	gCircle.loadFromFile(gRenderer, 	"resource/gfx/circle.png");
+	gDoor.loadFromFile(gRenderer, 		"resource/gfx/cmesias/door.png");
 
 	// load fonts
 	gFont 	= TTF_OpenFont("fonts/Viga-Regular.ttf", 24);
@@ -227,6 +237,15 @@ void PlayGame::Show(LWindow &gWindow, SDL_Renderer *gRenderer, PlayGame::Result 
 		int newMx = mx - remainderW;						// New mouse coordinates, locked on x32 coordinates
 		int newMy = my - remainderH;						// New mouse coordinates, locked on x32 coordinates
 
+		// Editor mouse coordinates
+		//if (ctrl) {
+		//	mouseX = mx;
+		//	mouseY = my;
+		//}else{
+			mouseX = newMx;
+			mouseY = newMy;
+		//}
+
 		// Handle Events
 		while (SDL_PollEvent(&event)) {
 
@@ -268,6 +287,20 @@ void PlayGame::Show(LWindow &gWindow, SDL_Renderer *gRenderer, PlayGame::Result 
 											  sRockBreak, sLazer, sAtariBoom);*/
 						break;
 					}
+
+					///////////////////////////////////////////////////////////
+					///////////////////////////////////////////////////////////
+					//------------------- Editor Controls -------------------//
+					if (editor) {
+						editorOnKeyDown(event.key.keysym.sym, part, particles);
+					}
+
+					///////////////////////////////////////////////////////////
+					///////////////////////////////////////////////////////////
+					//------------------- Player Controls -------------------//
+					else{
+
+					}
 				}
 				// Key Released
 				else if (event.type == SDL_KEYUP && event.key.repeat == 0)
@@ -285,24 +318,21 @@ void PlayGame::Show(LWindow &gWindow, SDL_Renderer *gRenderer, PlayGame::Result 
 						break;
 					}
 				}
-				//////////////////////////////////////
 
-				/////////////////////////////////////
+				// Editor Controls
+				if (editor) {
+					editorOnKeyUp(event.key.keysym.sym);
+				}
 
-				// Update Player click state
-				if (!editor) {
+				// Player Controls
+				else{
+
 					// Player Mouse Click state
 					player.mouseClickState(player, event);
 
 					// Update Xbox 360 controls
 					player.updateJoystick(player, event);
 				}
-
-				// Mouse Pressed
-				mousePressed(event);
-
-				// Mouse Released
-				//result = mouseReleased(event);
 
 				// Customize Character results
 				switch (optionsResult)  {
@@ -323,6 +353,12 @@ void PlayGame::Show(LWindow &gWindow, SDL_Renderer *gRenderer, PlayGame::Result 
 					quit = true;
 					break;
 				}
+
+				// Mouse Pressed
+				mousePressed(event);
+
+				// Mouse Released
+				mouseReleased(event);
 
 				// Customize Character results
 				/*switch (result)  {
@@ -453,6 +489,73 @@ void PlayGame::Update(LWindow &gWindow, SDL_Renderer *gRenderer) {
 	// Damage text: for pirate
 	tex.update(text);
 
+	// Update camera
+	if (camLeft) {
+		camx -= 3;
+	}
+	if (camRight) {
+		camx += 3;
+	}
+	if (camUp) {
+		camy -= 3;
+	}
+	if (camDown) {
+		camy += 3;
+	}
+
+	///////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////////
+	//---------------------------- Player's Camera & Editor's Camera ----------------------------//
+	/*// center camera on target
+	if (camlock) {
+		// If Level is smaller than Render size, center camera on center of Level,
+		// otherwise it follows the Player, and also is bounded on the Level Size
+		if (tl.levelWidth <= 270 || tl.levelHeight <= 152) {
+			camx = 0 + tl.levelWidth / 2 - screenWidth/2;
+			camy = 0 + tl.levelHeight / 2 - screenHeight/2;
+		}else{
+			float angleTowardsMouse = atan2((my+camy) - player.y-player.h/2, (mx+camx) - player.x-player.w/2);
+			angleTowardsMouse = angleTowardsMouse * (180/M_PI);
+			if (angleTowardsMouse < 0) { angleTowardsMouse = 360 - (-angleTowardsMouse); }
+			float radians   = (3.1415926536/180)*(angleTowardsMouse);
+			float Cos 		= floor(cos(radians)*100+0.05)/100;
+			float Sin 		= floor(sin(radians)*100+0.05)/100;
+
+			// Camera target distance
+			float bmx, bmy;
+			bmx  = player.getCenterX()-screenWidth/2;
+			bmy  = player.getCenterY()-screenHeight/2;
+			float distance = sqrt((bmx - camx) * (bmx - camx)+
+								  (bmy - camy) * (bmy - camy));
+
+			// Camera target
+			float vX = 0, vY = 0;
+			if (distance > 0.5){
+				vX 	= 2 * (10*distance/600) * (bmx - camx) / distance;
+				vY 	= 2 * (10*distance/600) * (bmy - camy) / distance;
+			}
+			camx += vX;
+			camy += vY;
+
+			// Camera bounds
+			if( camx < 0 ){
+				camx = 0;
+			}
+			if( camy < 0 ){
+				camy = 0;
+			}
+			if( camx+screenWidth > tl.levelWidth ){
+				camx = tl.levelWidth-screenWidth ;
+			}
+			if( camy+screenHeight  > tl.levelHeight ){
+				camy = tl.levelHeight-screenHeight ;
+			}
+		}
+	}*/
+	//---------------------------- Player's Camera & Editor's Camera ----------------------------//
+	///////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////////
+
 	// center camera on target
 	{
 		//camx = player.x + player.w / 2 - gWindow.getWidth()/2;
@@ -501,6 +604,26 @@ void PlayGame::RenderFG(SDL_Renderer *gRenderer, LWindow &gWindow) {
 // Render everything
 void PlayGame::Render(SDL_Renderer *gRenderer, LWindow &gWindow) {
 
+	// Render Tiles
+	tl.Render(gRenderer, tile, 0, camx, camy);
+	tl.Render(gRenderer, tile, 1, camx, camy);
+
+	// Render spawn point and exit door
+	{
+		// Render Player spawn point
+		gDoor.render(gRenderer, spawnX-camx, spawnY-camy, 200, 200, &rDoor[2]);
+		/*SDL_Rect tempRect = {spawnX-camx, spawnY-camy, 16, 16};
+		SDL_SetRenderDrawColor(gRenderer, 0, 255, 200, 255);
+		SDL_RenderDrawRect(gRenderer, &tempRect);*/
+
+		// Render Exit door
+		if (player.collectedKeys >= tl.requiredKeys) {
+			gDoor.render(gRenderer, doorX-camx, doorY-camy, 200, 200, &rDoor[1]);
+		}else{
+			gDoor.render(gRenderer, doorX-camx, doorY-camy, 200, 200, &rDoor[1]);
+		}
+	}
+
 	// Render Asteroid
 	aste.renderAsteroid(asteroid, camx, camy, gRenderer);
 
@@ -522,6 +645,13 @@ void PlayGame::Render(SDL_Renderer *gRenderer, LWindow &gWindow) {
 	// Render particles
 	part.renderStarParticle(particles, camx, camy, 1, gRenderer);
 	part.renderBulletParticle(particles, camx, camy, 1, gRenderer);
+
+	// Render tile, appliances
+	tl.Render(gRenderer, tile, 2, camx, camy);
+	tl.Render(gRenderer, tile, 3, camx, camy);
+	tl.Render(gRenderer, tile, 4, camx, camy);
+	tl.Render(gRenderer, tile, 5, camx, camy);
+	tl.Render(gRenderer, tile, 6, camx, camy);
 }
 
 // Render debug information
@@ -602,6 +732,11 @@ void PlayGame::RenderDebug(SDL_Renderer *gRenderer)
 
 			}
 		}
+
+		// Render Map Box
+		tempRect = {0-camx, 0-camy, tl.levelWidth, tl.levelHeight};
+		SDL_SetRenderDrawColor(gRenderer, 0, 255, 0, 255);
+		SDL_RenderDrawRect(gRenderer, &tempRect);
 	}
 }
 
@@ -694,34 +829,36 @@ void PlayGame::RenderText(SDL_Renderer *gRenderer, LWindow &gWindow) {
 
 }
 
-// Mouse Pressed
-PlayGame::Result PlayGame::mousePressed(SDL_Event event){
-	if (event.type == SDL_MOUSEBUTTONDOWN) {
-		if (event.button.button == SDL_BUTTON_LEFT) {
-			//leftClick = true;
+// Render Editor UI
+void PlayGame::RenderHand(SDL_Renderer *gRenderer) {
+	if (debug){
+		if (place_type == 0) {
+			// Render Tile debug
+			tl.RenderDebug(gRenderer, tile, mouseX, mouseY, mx, my, camx, camy, &rTiles[0], tb.tilesWidth);
 		}
-		if (event.button.button == SDL_BUTTON_RIGHT) {
-			// normal enemy
-			pira.spawn(pirate, mx+camx-80/2, my+camy-80/2,
-					  80, 80, 160, 160,
-					  0.0, randDouble(3.6, 4.4), 0, 250,
-					  40, 57, 17);
-			// boss enemy
-			/*pira.spawn(pirate, mx+camx-250/2, my+camy-250/2,
-					  250, 250, 512, 512,
-					  0.0, randDouble(3.6, 4.4), 1, 1000,
-					  119, 256, -49);*/
+		// Render " " class objects in hand
+		/*else if (place_type == 1) {
+
 		}
+		// Render item class objects in Hand
+		else if (place_type == 2) {
+			// Render Item in Hand
+			// Render mouse coordinates snapped to grid
+			obj.gItem.setAlpha(110);
+			obj.gItem.render(gRenderer, mouseX, mouseY, 16, 16, &obj.rClips[obj.id]);
+			SDL_Rect tempRect = {mouseX, mouseY, 16, 16};
+			SDL_SetRenderDrawColor(gRenderer, 255, 255, 255, 255);
+			SDL_RenderDrawRect(gRenderer, &tempRect);
+		}*/
 	}
-	return Nothing;
 }
 
 // Mouse Released
-PlayGame::Result PlayGame::mouseReleased(SDL_Event event){
-	PlayGame::Result result = Nothing;
-	if (event.type == SDL_MOUSEBUTTONUP) {
-		if (event.button.button == SDL_BUTTON_LEFT) {
-			leftClick = false;
+//PlayGame::Result PlayGame::mouseReleased(SDL_Event event){
+//	PlayGame::Result result = Nothing;
+////	if (event.type == SDL_MOUSEBUTTONUP) {
+//		if (event.button.button == SDL_BUTTON_LEFT) {
+//			leftClick = false;
 			// Perform actions
 			/*for (int i=0; i<3; i++) {
 				// Check Mouse hover w/ Menu item
@@ -739,13 +876,13 @@ PlayGame::Result PlayGame::mouseReleased(SDL_Event event){
 					}
 				}
 			}*/
-		}
-		if (event.button.button == SDL_BUTTON_RIGHT) {
+//		}
+//		if (event.button.button == SDL_BUTTON_RIGHT) {
 			//
-		}
-	}
-	return result;
-}
+//		}
+//	}
+//	return result;
+//}
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1307,3 +1444,360 @@ void PlayGame::knockbackEffect(float targetX, float targetY, int targetW, int ta
 	objectVX += force * (cos( (3.14159265/180)*(angle) ));
 	objectVY += force * (sin( (3.14159265/180)*(angle) ));
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//-------------------------------------------- Editor Controls --------------------------------------------//
+
+
+// Mouse Pressed
+PlayGame::Result PlayGame::mousePressed(SDL_Event event){
+
+	// If holding a mouse button down
+	if (event.type == SDL_MOUSEBUTTONDOWN) {
+
+		// If holding down left mouse button
+		if (event.button.button == SDL_BUTTON_LEFT) {
+			leftClick = true;
+		}
+		// If holding down right mouse button
+		if (event.button.button == SDL_BUTTON_RIGHT) {
+			rightClick = true;
+			// normal enemy
+			pira.spawn(pirate, mx+camx-80/2, my+camy-80/2,
+					  80, 80, 160, 160,
+					  0.0, randDouble(3.6, 4.4), 0, 250,
+					  40, 57, 17);
+			// boss enemy
+			/*pira.spawn(pirate, mx+camx-250/2, my+camy-250/2,
+					  250, 250, 512, 512,
+					  0.0, randDouble(3.6, 4.4), 1, 1000,
+					  119, 256, -49);*/
+		}
+
+		// If holding down middle mouse button
+		if (event.button.button == SDL_BUTTON_MIDDLE) {
+
+		}
+	}
+	return Nothing;
+}
+
+// Mouse Released
+PlayGame::Result PlayGame::mouseReleased(SDL_Event event){
+	PlayGame::Result result = Nothing;
+
+	// If releasing a mouse button
+	if (event.type == SDL_MOUSEBUTTONUP) {
+
+		// If holding down left mouse button
+		if (event.button.button == SDL_BUTTON_LEFT) {
+			leftClick = false;
+		}
+
+		// If holding down right mouse button
+		if (event.button.button == SDL_BUTTON_RIGHT) {
+			rightClick = false;
+		}
+
+		// If holding down right middle button
+		if (event.button.button == SDL_BUTTON_MIDDLE) {
+
+		}
+	}
+	return result;
+}
+
+
+
+// Editor controls - Placing Tiles
+void PlayGame::editorOnKeyDown( SDL_Keycode sym, Particle &part, Particle particles[] )
+{
+	switch (sym) {
+	case SDLK_UP:				// camera up
+		camUp = true;
+		break;
+	case SDLK_DOWN:				// camera down
+		camDown = true;
+		break;
+	case SDLK_LEFT:				// camera left
+		camLeft = true;
+		break;
+	case SDLK_RIGHT:			// camera right
+		camRight = true;
+		break;
+	case SDLK_y:				// camera lock
+		camlock = (!camlock);
+		break;
+	case SDLK_b:				// Change Tile collision properties
+		if (shift) {
+			tl.ChangeCollision(tile, 0);
+		}else{
+			tl.ChangeCollision(tile, 1);
+		}
+		break;
+	case SDLK_v:				// Change Tile destructible properties
+		if (shift) {
+			tl.ChangeDestructable(tile, 0);
+		}else{
+			tl.ChangeDestructable(tile, 1);
+		}
+		break;
+	case SDLK_x:				// Save spawn point
+		spawnX = mouseX+camx;
+		spawnY = mouseY+camy;
+		break;
+	case SDLK_u:				// Spawn Tile as a collision or not
+		tl.collide = (!tl.collide);
+		break;
+	case SDLK_j:				// Spawn Tile as a destructible or not
+		tl.destructible = (!tl.destructible);
+		break;
+	case SDLK_z:				// Save door spawn point
+		doorX = mouseX+camx;
+		doorY = mouseY+camy;
+		break;
+	case SDLK_w:
+		if (shift) {
+			tb.Move(tilebar, "up");
+		}
+		break;
+	case SDLK_s:
+		if (shift) {
+			tb.Move(tilebar, "down");
+		}
+		break;
+	case SDLK_a:
+		if (shift) {
+			tb.Move(tilebar, "left");
+		}
+		break;
+	case SDLK_d:
+		if (shift) {
+			tb.Move(tilebar, "right");
+		}
+		break;
+	case SDLK_q:								// Change place type (i.e. Tiles or Collision Tiles)
+		place_type++;
+		break;
+	case SDLK_TAB:								// Toggle hide other layers
+		tl.hideOtherLayers = (!tl.hideOtherLayers);
+		break;
+	case SDLK_k:								// Change clamp size
+		if (shift){
+			if (clampSize > 2) {
+				clampSize -=2;
+			}
+		}else{
+			clampSize+=2;
+		}
+		break;
+	case SDLK_l:								// Change place_type Layer
+		if (shift) {
+			if (place_type==0) {
+				tl.layer--;
+			}else if (place_type==1) {
+				//tc.layer--;
+			}
+		}else{
+			if (place_type==0) {
+				tl.layer++;
+			}else if (place_type==1) {
+				//tc.layer++;
+			}
+		}
+		break;
+	case SDLK_i:								// Change place_type Type
+		if (shift) {
+			if (place_type==0) {
+				tl.id--;
+			}else if (place_type==1) {
+				//tc.type--;
+			}else if (place_type==2) {
+			//////////////	obj.id--;
+			}else if (place_type==3) {
+			//////////////	mon.type--;
+			}
+		}else{
+			if (place_type==0) {
+				tl.id++;
+			}else if (place_type==1) {
+			//	tc.type++;
+			}else if (place_type==2) {
+			///////////////	obj.id++;
+			}else if (place_type==3) {
+			///////////////	mon.type++;
+			}
+		}
+		break;
+	case SDLK_PERIOD:							// Tile, change Layer
+		if (shift)
+			tl.ChangeLayer(tile, -1);
+		else
+			tl.ChangeLayer(tile, 1);
+		break;
+	case SDLK_c:								// Tile, copy Tile
+		if (editor) {
+			if (place_type == 0 ) {
+				tl.Copy(tile);
+			}else if (place_type == 1) {
+			//	tc.copy(tilec);
+			}
+		}
+		break;
+	case SDLK_SPACE:							// Tile, remove all Tiles (and Collision Tiles)
+		if (shift && editor) {
+			////////////////////////ClearLevel(part, particles);
+
+			/*if (place_type == 0 ) {
+			//	tl.removeAllTiles(tile);
+			}else if (place_type == 1) {
+			//	tc.removeAll(tilec);
+			}*/
+		}
+		break;
+	case SDLK_LEFTBRACKET:						// Tile, subtract block in x-axis
+		if (place_type == 0) {
+			// If shift, then change tile size
+			if (shift) {
+				if (tl.tilew > 1) {
+					tl.tilew -= 1;
+				}
+			}
+			else{
+				// If not shift, then change tile amount placed
+				if (tl.multiW > 1) {
+					tl.multiW -= 1;
+				}
+			}
+		}else if (place_type == 1) {
+			if (shift) {
+				//if (tc.tilew > 1) {
+				//	tc.tilew -= 1;
+				//}
+			}
+			else{
+				//if (tc.multiW > 1) {
+				//	tc.multiW -= 1;
+				//}
+			}
+		}else if (place_type == 3) {
+			//if (mon.multiW > 1) {
+				////////////////////mon.multiW -= 1;
+			//}
+		}
+		break;
+	case SDLK_RIGHTBRACKET:						// Tile, add block in x-axis or change tile size
+		if (place_type == 0) {
+			if (shift) {
+				tl.tilew += 1;
+			}
+			else{
+				tl.multiW += 1;
+			}
+		}else if (place_type == 1) {
+			if (shift) {
+				//tc.tilew += 1;
+			}
+			else{
+				//tc.multiW += 1;
+			}
+		}else if (place_type == 3) {
+			//////////////mon.multiW += 1;
+		}
+		break;
+	case SDLK_MINUS:							// Tile, subtract block in y-axis or change tile size
+		if (place_type == 0) {
+			if (shift) {
+				if (tl.tileh > 1) {
+					tl.tileh -= 1;
+				}
+			}
+			else{
+				if (tl.multiH > 1) {
+					tl.multiH -= 1;
+				}
+			}
+		}else if (place_type == 1) {
+			if (shift) {
+				//if (tc.tileh > 1) {
+				//	tc.tileh -= 1;
+				//}
+			}
+			else{
+				//if (tc.multiH > 1) {
+				//	tc.multiH -= 1;
+				//}
+			}
+		}else if (place_type == 3) {
+			//if (mon.multiH > 1) {
+			///////////////	mon.multiH -= 1;
+			//}
+		}
+		break;
+	case SDLK_EQUALS:							// Tile, add block in y-axis
+		if (place_type == 0) {
+			if (shift) {
+				tl.tileh += 1;
+			}
+			else{
+				tl.multiH += 1;
+			}
+		}else if (place_type == 1) {
+			if (shift) {
+				//tc.tileh += 1;
+			}
+			else{
+				//tc.multiH += 1;
+			}
+		}else if (place_type == 3) {
+			//mon.multiH += 1;
+		}
+		break;
+	case SDLK_9: {								// Load Room
+			/*tl.loadTiles(tile);
+			tc.loadTiles(tilec);
+			//loadcTiles(ctile);
+
+			std::stringstream tempss;
+			tempss << "Loading Tiles";
+			tex.spawn(text, 0, 0, 0.0, 0.0, 255, tempss.str().c_str());*/
+
+			break;
+		}
+	case SDLK_0: {								// Save Room
+			/*tl.saveTiles(tile);
+			tc.saveTiles(tilec);
+			//savecTiles(ctile);
+
+			std::stringstream tempss;
+			tempss << "Saving Tiles";
+			tex.spawn(text, 0, 0, 0.0, 0.0, 255, tempss.str().c_str());*/
+			break;
+		}
+	}
+}
+void PlayGame::editorOnKeyUp( SDL_Keycode sym ) {
+	switch (sym) {
+	case SDLK_UP:
+		camUp = false;
+		break;
+	case SDLK_DOWN:
+		camDown = false;
+		break;
+	case SDLK_LEFT:
+		camLeft = false;
+		break;
+	case SDLK_RIGHT:
+		camRight = false;
+		break;
+	}
+}
+
+
+//-------------------------------------------- Editor Controls --------------------------------------------//
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+

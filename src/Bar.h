@@ -8,7 +8,7 @@
 #ifndef BAR_H_
 #define BAR_H_
 
-#include "LTexture.h"
+#include "Engine/LTexture.h"
 #include <sstream>
 
 struct Bar {

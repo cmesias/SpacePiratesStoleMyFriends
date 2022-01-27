@@ -8,6 +8,9 @@
 #ifndef LOCAL_MAPS_H_
 #define LOCAL_MAPS_H_
 
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
+#include <SDL2/SDL_ttf.h>
 
 //Map size
 class Map {

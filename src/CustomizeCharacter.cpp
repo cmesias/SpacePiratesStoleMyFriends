@@ -9,7 +9,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
-#include "LWindow.h"
+#include "Engine/LWindow.h"
 #include "CustomizeCharacter.h"
 
 void CustomizeCharacter::Show(LWindow &gWindow, SDL_Renderer *gRenderer, CustomizeCharacter::Result &result) {

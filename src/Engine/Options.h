@@ -14,7 +14,7 @@
 
 #include "LTexture.h"
 #include "LWindow.h"
-#include "Game/Players.h"
+#include "Players.h"
 #include "Helper.h"
 
 class Options {

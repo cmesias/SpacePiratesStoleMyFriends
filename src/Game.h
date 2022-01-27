@@ -8,14 +8,14 @@
 #ifndef GAME_H_
 #define GAME_H_
 
-#include "LWindow.h"
+#include "Engine/LWindow.h"
 #include <cstdio>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_mixer.h>
 #include <SDL2/SDL_ttf.h>
-#include "Options.h"
-#include "Helper.h"
+#include "Engine/Options.h"
+#include "Engine/Helper.h"
 
 class Game : public Options, public Helper {
 public:	// globals

@@ -10,11 +10,22 @@
 
 #include "LTexture.h"
 #include "Helper.h"
+#include "Options.h"
+
+#include <fstream>
+#include <limits>
+#include <sstream>
+
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL_mixer.h>
 
 class MainMenu : public Helper {
 public:
 	enum MenuResult { Nothing, NewGame, HowToPlay, Options, Credits, Exit };
-	void Show(LWindow &gWindow, SDL_Renderer *gRenderer, MainMenu::MenuResult &result);
+	void Show(LWindow &gWindow,
+			SDL_Renderer *gRenderer,
+			MainMenu::MenuResult &result);
 	MainMenu::MenuResult mousePressed(SDL_Event event);
 	MainMenu::MenuResult mouseReleased(SDL_Event event);
 	bool checkCollision(SDL_Rect a, SDL_Rect b);

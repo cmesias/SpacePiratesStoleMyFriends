@@ -5,6 +5,8 @@
  *      Author: Carl
  */
 
+#include "../Engine/Spawners.h"
+
 #include <iostream>
 #include <math.h>
 #include <stdio.h>
@@ -21,9 +23,7 @@
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_mouse.h>
 
-#include "Asteroids.h"
-
-#include "Spawners.h"
+#include "../Engine/Asteroids.h"
 
 // Load
 void Spawner::load(SDL_Renderer* gRenderer){

@@ -5,6 +5,8 @@
  *      Author: Carl
  */
 
+#include "../Engine/Asteroids.h"
+
 #include <iostream>
 #include <math.h>
 #include <stdio.h>
@@ -16,7 +18,6 @@
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_mixer.h>
 
-#include "Asteroids.h"
 
 // Load asteroid resources
 void Asteroid::loadResources(SDL_Renderer* gRenderer){

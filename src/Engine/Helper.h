@@ -9,7 +9,8 @@
 #define LOCAL_HELPER_H_
 
 #include <SDL2/SDL.h>
-#include "Game/Timers.h"
+
+#include "Timers.h"
 
 class Helper {
 public:

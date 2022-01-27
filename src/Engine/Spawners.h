@@ -9,8 +9,8 @@
 #define LOCAL_SPAWNERS_H_
 
 #include "Asteroids.h"
-#include "../Helper.h"
-#include "../LTexture.h"
+#include "LTexture.h"
+#include "Helper.h"
 
 class Spawner: public Helper {
 public:

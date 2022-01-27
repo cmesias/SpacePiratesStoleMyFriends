@@ -7,9 +7,9 @@
 
 #include <SDL2/SDL.h>
 
-#include "LTexture.h"
-#include "LWindow.h"
-#include "Helper.h"
+#include "Engine/LTexture.h"
+#include "Engine/LWindow.h"
+#include "Engine/Helper.h"
 #include "SplashScreen.h"
 
 void SplashScreen::Show(LWindow &gWindow, SDL_Renderer *gRenderer, SplashScreen::SplashResult &result) {

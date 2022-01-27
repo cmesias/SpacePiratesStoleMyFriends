@@ -5,12 +5,12 @@
  *      Author: Carl
  */
 
-#ifndef GAME_PIRATE_H_
-#define GAME_PIRATE_H_
+#ifndef ENGINE_PIRATE_H_
+#define ENGINE_PIRATE_H_
 
-#include "../Helper.h"
-#include "Players.h"
 #include "Maps.h"
+#include "Players.h"
+#include "Helper.h"
 
 class Pirate : public Helper {
 public:	// Media
@@ -99,4 +99,4 @@ public:
 	void render(SDL_Renderer* gRenderer, Pirate pirate[], int camx, int camy);
 };
 
-#endif /* GAME_PIRATE_H_ */
+#endif /* ENGINE_PIRATE_H_ */

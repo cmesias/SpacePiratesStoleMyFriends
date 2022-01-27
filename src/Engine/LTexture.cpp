@@ -5,6 +5,8 @@
  *      Author: healt
  */
 
+#include "../Engine/LTexture.h"
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -13,7 +15,6 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
-#include "LTexture.h"
 
 
 

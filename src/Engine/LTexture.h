@@ -11,6 +11,9 @@
 /* Putting this here will prevent errors
  * if some other class includes this class */
 #include <iostream>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
+#include <SDL2/SDL_ttf.h>
 
 //Texture wrapper class
 class LTexture {

@@ -8,9 +8,9 @@
 #ifndef LOCAL_ASTEROIDS_H_
 #define LOCAL_ASTEROIDS_H_
 
-#include "../Helper.h"
-#include "../LTexture.h"
-#include "../Particless.h"
+#include "LTexture.h"
+#include "Helper.h"
+#include "Particless.h"
 
 class Asteroid : public Helper {
 public:	// Media

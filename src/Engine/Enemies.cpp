@@ -5,6 +5,8 @@
  *      Author: Carl
  */
 
+#include "../Engine/Enemies.h"
+
 #include <iostream>
 #include <math.h>
 #include <stdio.h>
@@ -17,7 +19,6 @@
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_mouse.h>
 
-#include "Enemies.h"
 
 // Load enemy resources
 void Enemy::load(SDL_Renderer* gRenderer){

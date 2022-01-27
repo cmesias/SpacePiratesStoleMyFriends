@@ -5,15 +5,16 @@
  *      Author: Carl
  */
 
-#include "Pirate.h"
+#include "../Engine/Pirate.h"
 
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
-#include "../LTexture.h"
-#include "../Particless.h"
+
+#include "LTexture.h"
+#include "Particless.h"
 
 // TODO (1-24-2022) [ ] - create ability to reload for Pirates
 

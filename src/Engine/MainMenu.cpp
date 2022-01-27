@@ -5,12 +5,14 @@
  *      Author: Carl
  */
 
-#include <fstream>
 #include <iostream>
+#include <math.h>
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
+#include <SDL2/SDL_ttf.h>
 
-#include "LWindow.h"
 #include "MainMenu.h"
+#include "LWindow.h"
 
 void MainMenu::Show(LWindow &gWindow, SDL_Renderer *gRenderer, MainMenu::MenuResult &result) {
 

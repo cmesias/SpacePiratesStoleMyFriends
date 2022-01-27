@@ -12,9 +12,9 @@
 #include <limits>
 #include <sstream>
 
-#include "LTexture.h"
+#include "Engine/LTexture.h"
 #include "Bar.h"
-#include "Helper.h"
+#include "Engine/Helper.h"
 
 class CustomizeCharacter : public Bar, public Helper {
 public:

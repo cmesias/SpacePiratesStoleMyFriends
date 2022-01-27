@@ -10,13 +10,13 @@
 
 #include <SDL2/SDL_ttf.h>
 
-#include "../LWindow.h"
-#include "../LTexture.h"
-#include "../Particless.h"
 #include "Asteroids.h"
 #include "Enemies.h"
-#include "../Helper.h"
+#include "LTexture.h"
+#include "LWindow.h"
 #include "Maps.h"
+#include "Particless.h"
+#include "Helper.h"
 
 //Player
 class Players: public Helper {
@@ -111,6 +111,9 @@ public:	// variables
 	bool renderFlash	= false; // shuts off right after 1 frame
 	double recoilX = 0;			 // gun recoil
 	double recoilY = 0;
+
+public: // Objective variables
+	int collectedKeys = 0;
 
 public: // Shooting variables
 
@@ -235,6 +238,45 @@ public:	// functions
 				SDL_Renderer* gRenderer,
 				TTF_Font *gFont, TTF_Font *gFont2,
 				SDL_Color color, int &PARTICLES, LTexture gText);
+
+
+public:	// Accessor functions
+
+	// Get Character target details
+	int getTargetID();
+
+	// get x
+	float getX();
+
+	// get y
+	float getY();
+
+	// get x center
+	float getCenterX();
+
+	// get y center
+	float getCenterY();
+
+	// get x velocity vX
+	float getvX();
+
+	// get y velocity vY
+	float getvY();
+
+	// get angle of player (based on mouse location in relation to player)
+	float getLookAngle();
+
+	// get center of cursor x-axis
+	float getCenterCursorX();
+
+	// get center of cursor y-axis
+	float getCenterCursorY();
+
+	// get center of mouse x-axis
+	float getCenterMouseX();
+
+	// get center of cursor y-axis
+	float getCenterMouseY();
 };
 
 #endif /* LOCAL_PLAYERS_H_ */

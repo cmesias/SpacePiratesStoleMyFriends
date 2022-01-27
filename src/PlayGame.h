@@ -8,15 +8,18 @@
 #ifndef PLAYGAME_H_
 #define PLAYGAME_H_
 
-#include "Game/Asteroids.h"
-#include "Game/Enemies.h"
-#include "Game/Maps.h"
-#include "Game/Pirate.h"
-//#include "Game/Pause.h"
-#include "Game/Players.h"
-#include "Game/Spawners.h"
-#include "Options.h"
-#include "Helper.h"
+#include "Engine/Asteroids.h"
+#include "Engine/Enemies.h"
+#include "Engine/Maps.h"
+#include "Engine/Pirate.h"
+#include "Engine/Players.h"
+#include "Engine/Spawners.h"
+#include "Engine/TileBar.h"
+#include "Engine/Tiles.h"
+#include "Engine/Options.h"
+#include "Engine/Helper.h"
+
+// New from "DungeonCaster"
 
 class PlayGame : public Helper, public Options {
 public:	// specific game rules
@@ -113,10 +116,38 @@ public:	// Other classes
 	//Mixed mix;
 	//Controls cont;
 	//static Items items[10];
-public:
-    // camera
+
+public:	// Tile and Tilebar variables
+
+	// Tiles
+	Tile tl;
+	Tile tile[3000];
+
+	// Collision Tiles
+	//TileC tc;
+	//TileC tilec[2096];
+	SDL_Rect rClips[64]; 		// doorWidth * doorHeight = 64
+
+	// Tilebar
+	TileBar tb;
+	TileBar tilebar[296];
+	SDL_Rect rTiles[296];		// how many unique tiles are, on the tile-bar
+
+	/*
+	 * 0: Closed
+	 * 1: Open
+	 * 2: Spawn tile
+	 */
+	SDL_Rect rDoor[3];
+
+	// Player door and spawn point textures
+	LTexture gDoor;				//
+
+public:							// camera
+
     int camx;
     int camy;
+    bool camlock;
 
 public:	// Variables
 
@@ -143,6 +174,45 @@ public:	// Variables
 
 	// Render text
 	void RenderText(SDL_Renderer *gRenderer, LWindow &gWindow);
+
+public: // Load spawn point for level
+
+	void loadSpawnPoint(int level);
+
+public: // Player variables
+
+	int playerStateLevel;			// Current stage level
+	float spawnX = 0, spawnY = 0;	// This is where the player will spawn on the map
+	float doorX = 100;				// The player needs to reach this door or tile to advance to the next level
+	float doorY = 100;
+
+	/* Placement types
+	 * 0: Tiles
+	 * 2: Collision Tiles (depreciated)
+	 * 3: Monsters
+	 *
+	 */
+	int place_type;
+	int clampSize;					// Magnet pixel size
+	float mouseX;
+	float mouseY;
+
+	// Editors camera
+	bool camUp = false;
+	bool camDown = false;
+	bool camLeft = false;
+	bool camRight = false;
+
+public:	// Editor controls
+
+	void editorOnKeyDown(SDL_Keycode sym, Particle &part, Particle particles[]);
+
+	void editorOnKeyUp(SDL_Keycode sym);
+
+public: // Render Editor UI
+
+	// Render tile in hand
+	void RenderHand(SDL_Renderer *gRenderer);
 
 public:	// Functions mixed with other classes
 	// Check collision between Particle & Asteroid
@@ -177,10 +247,13 @@ private:	// used for some debugging
 	bool debug;
 	bool editor;
 	int mx, my;
-	bool leftClick;
 	bool quit;
 	bool shift;
 	SDL_Event event;
+
+	// Buttons for editor
+	bool rightClick = false;
+	bool leftClick;
 };
 
 #endif /* PLAYGAME_H_ */

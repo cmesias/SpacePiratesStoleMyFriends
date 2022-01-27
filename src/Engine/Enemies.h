@@ -9,9 +9,10 @@
 #define LOCAL_ENEMIES_H_
 
 #include <SDL2/SDL_mixer.h>
-#include "../Helper.h"
-#include "../LTexture.h"
-#include "../Particless.h"
+
+#include "LTexture.h"
+#include "Helper.h"
+#include "Particless.h"
 
 class Enemy: public Helper {
 public:

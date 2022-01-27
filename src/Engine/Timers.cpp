@@ -5,8 +5,9 @@
  *      Author: Carl
  */
 
+#include "../Engine/Timers.h"
+
 #include <SDL2/SDL.h>
-#include "Timers.h"
 
 Timer::Timer()
 {
