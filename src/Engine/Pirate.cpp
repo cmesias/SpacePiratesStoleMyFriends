@@ -50,6 +50,8 @@ void Pirate::Init(Pirate pirate[]){
 		pirate[i].type 				= 0;
 		pirate[i].timer 			= 0;
 		pirate[i].reloading 		= false;
+		pirate[i].mouse 			= false;
+		pirate[i].mouseBox 			= false;
 	}
 }
 
@@ -593,5 +595,71 @@ void Pirate::render(SDL_Renderer* gRenderer, Pirate pirate[], int camx, int camy
 	}
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+//---------------------------------------- Editor functions -----------------------------------------//
+
+void Pirate::Remove(Pirate pirate[], int click) {
+	for (int i = 0; i < max; i++) {
+		if (pirate[i].alive){
+			if (click == 0) {
+				if (pirate[i].mouseBox){
+					pirate[i].x = -6000;
+					pirate[i].y = -6000;
+					pirate[i].alive = false;
+					count--;
+				}
+			}else{
+				if (pirate[i].mouse){
+					pirate[i].x = -6000;
+					pirate[i].y = -6000;
+					pirate[i].alive = false;
+					count--;
+				}
+			}
+		}
+	}
+}
+
+void Pirate::RemoveAll(Pirate pirate[]){
+	count = 0;
+	for (int i = 0; i < max; i++) {
+		pirate[i].x = -6000;
+		pirate[i].y = -6000;
+		pirate[i].alive = false;
+	}
+}
+
+void Pirate::EditorUpdate(Pirate pirate[], int newMx, int newMy, int mex, int mey, int camx, int camy) {
+	// mouse and mouseBox check
+	int tileW = 16*multiW;
+	int tileH = 16*multiH;
+	for (int i = 0; i < max; i++) {
+		if (pirate[i].alive) {
+			////////////////////////////////////////////////////////////////////////////////////////
+			//------------------------------------ Editor stuff ----------------------------------//
+
+			//If the mouse+size is on the tile
+			if (newMx+tileW-2 > pirate[i].x && newMx+1 < pirate[i].x + pirate[i].w &&
+					newMy+tileH-2 > pirate[i].y && newMy+1 < pirate[i].y + pirate[i].h) {
+				pirate[i].mouseBox = true;
+			} else {
+				pirate[i].mouseBox = false;
+			}
+			//If the mouse is on the tile
+			if (mex > pirate[i].x && mex < pirate[i].x + pirate[i].w &&
+				mey > pirate[i].y && mey < pirate[i].y + pirate[i].h) {
+				pirate[i].mouse = true;
+			} else {
+				pirate[i].mouse = false;
+			}
+			//------------------------------------ Editor stuff ----------------------------------//
+			////////////////////////////////////////////////////////////////////////////////////////
+		}
+	}
+}
+//---------------------------------------- Editor functions -----------------------------------------//
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 

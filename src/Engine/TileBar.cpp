@@ -26,7 +26,7 @@
 
 void TileBar::Load(SDL_Renderer *gRenderer) {
 	gTileBar.loadFromFile(gRenderer, "resource/gfx/cmesias/tile00.png");
-	gRect.loadFromFile(gRenderer, "resource/gfx/rect.png");
+	gRect.loadFromFile(gRenderer, "resource/gfx/cmesias/rect.png");
 	rRect[0] = { 0, 0, 64, 64 };
 	rRect[1] = { 64, 0, 64, 64 };
 	rRect[2] = { 128, 0, 64, 64 };

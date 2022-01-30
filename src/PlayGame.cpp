@@ -32,30 +32,55 @@
 // TODO 1-25-2022. [ ] - Play SFX when an enemy is hit by a bullet from the player
 
 
-// TODO [ ] - add "ctrl" variable
-// TODO [ ] - fix when placing down a door or exit door, the placement is not lined up with the mouse, it is off center
-// TODO [ ] - look at door states, such as when the player has enough keys then draw the exit door
+// TODO 1-27-2022 [ ] - add "ctrl" variable
+// TODO 1-27-2022 [ ] - fix when placing down a door or exit door, the placement is not lined up with the mouse, it is off center
+// TODO 1-27-2022 [ ] - look at door states, such as when the player has enough keys then draw the exit door
+
+
+// TODO 1-28-2022 [ ] - add tiles to init and update
 
 void PlayGame::Init() {
 	// Upon entry
-    debug 				= false;
-    editor				= false;
+    debug 				= true;
+    editor				= true;
+	camlock				= false;
 	quit 				= false;
 	leftClick 			= false;
 	shift 				= false;
-	camx 				= 0;
-	camy 				= 0;
 	frame 				= 0;
     cap 				= true;
+	camx 				= 0;
+	camy 				= 0;
 
 	// Initialize
+
+	// Tile class
+	tl.Init(tile);
+
+	// Tilebar class
+	tb.Init(tilebar);
+	tb.SpawnMultiple(tilebar);
+
+	// Pirate class
 	pira.Init(pirate);
 	part.init(particles);
+
+	// Asteroid class
 	aste.init(asteroid);
+
+	// Enemy class
 	enem.init(enemy);
+
+	// Spawner class
 	spaw.init(spawner);
+
+	// Player class
 	player.reset(map.x+map.w/2-player.w/2, map.y+map.h/2-player.h/2, "Player1", false);
+
+	// Player load score
 	player.loadScore();
+
+	// Text class
 	tex.init(text);
 
 	// Opened door, closed door, spawn tile
@@ -147,11 +172,27 @@ void PlayGame::Load(LWindow &gWindow, SDL_Renderer *gRenderer) {
 	gTargetTexture.createBlank( gRenderer, screenWidth, screenHeight, SDL_TEXTUREACCESS_TARGET );
 
 	// load media for other classes
+
+	// Tile class load
+
+	// Tilebar class load
+
+	// Pirate class load
 	pira.Load(gRenderer);
+
+	// Particle class load
 	part.load(gRenderer);
+
+	// Asteroid class load
 	aste.loadResources(gRenderer);
+
+	// Enemy class load
 	enem.load(gRenderer);
+
+	// Spawner class load
 	spaw.load(gRenderer);
+
+	// Player class load
 	player.loadResources(gRenderer);
 
 	// Apply video configurations
@@ -238,13 +279,13 @@ void PlayGame::Show(LWindow &gWindow, SDL_Renderer *gRenderer, PlayGame::Result 
 		int newMy = my - remainderH;						// New mouse coordinates, locked on x32 coordinates
 
 		// Editor mouse coordinates
-		//if (ctrl) {
-		//	mouseX = mx;
-		//	mouseY = my;
-		//}else{
+		if (ctrl) {
+			mouseX = mx;
+			mouseY = my;
+		}else{
 			mouseX = newMx;
 			mouseY = newMy;
-		//}
+		}
 
 		// Handle Events
 		while (SDL_PollEvent(&event)) {
@@ -261,22 +302,19 @@ void PlayGame::Show(LWindow &gWindow, SDL_Renderer *gRenderer, PlayGame::Result 
 			}else{
 				// Key Pressed
 				if (event.type == SDL_KEYDOWN && event.key.repeat == 0) {
-					// Player Keys Released, categorized
-					player.OnKeyDown(player, event.key.keysym.sym);
-
 					// Local controls
 					switch (event.key.keysym.sym) {
+					case SDLK_LCTRL:
+						ctrl = true;
+						break;
+					case SDLK_RCTRL:
+						shift = true;
+						break;
 					case SDLK_LSHIFT:
 						shift = true;
 						break;
 					case SDLK_RSHIFT:
 						shift = true;
-						break;
-					case SDLK_h:
-						debug = (!debug);
-						break;
-					case SDLK_p:
-						editor = (!editor);
 						break;
 					case SDLK_ESCAPE:
 						start(gWindow, gRenderer, player);
@@ -289,27 +327,40 @@ void PlayGame::Show(LWindow &gWindow, SDL_Renderer *gRenderer, PlayGame::Result 
 					}
 
 					///////////////////////////////////////////////////////////
-					///////////////////////////////////////////////////////////
 					//------------------- Editor Controls -------------------//
 					if (editor) {
 						editorOnKeyDown(event.key.keysym.sym, part, particles);
 					}
 
 					///////////////////////////////////////////////////////////
-					///////////////////////////////////////////////////////////
 					//------------------- Player Controls -------------------//
-					else{
+					else {
+						// Player Keys Released, categorized
+						player.OnKeyDown(player, event.key.keysym.sym);
 
 					}
 				}
 				// Key Released
 				else if (event.type == SDL_KEYUP && event.key.repeat == 0)
 				{
-					// Player Keys Released, categorized
-					player.OnKeyUp(player, event.key.keysym.sym);
 
 					// Local controls
 					switch (event.key.keysym.sym) {
+					case SDLK_h:
+						debug = (!debug);
+						break;
+					case SDLK_p:
+						editor = (!editor);
+						break;
+					case SDLK_y:				// camera lock
+						camlock = (!camlock);
+						break;
+					case SDLK_LCTRL:
+						ctrl = true;
+						break;
+					case SDLK_RCTRL:
+						shift = true;
+						break;
 					case SDLK_LSHIFT:
 						shift = false;
 						break;
@@ -317,21 +368,30 @@ void PlayGame::Show(LWindow &gWindow, SDL_Renderer *gRenderer, PlayGame::Result 
 						shift = false;
 						break;
 					}
+
+					///////////////////////////////////////////////////////////
+					//------------------- Editor Controls -------------------//
+					if (editor) {
+						editorOnKeyUp(event.key.keysym.sym);
+					}
+					///////////////////////////////////////////////////////////
+					//------------------- Player Controls -------------------//
+					else {
+						// Player Keys Released, categorized
+						player.OnKeyUp(player, event.key.keysym.sym);
+					}
 				}
 
-				// Editor Controls
-				if (editor) {
-					editorOnKeyUp(event.key.keysym.sym);
-				}
-
-				// Player Controls
+				// Player mouse controls
 				else{
+					if (!editor) {
+						// Player Mouse Click state
+						player.mouseClickState(player, event);
 
-					// Player Mouse Click state
-					player.mouseClickState(player, event);
+						// Update Xbox 360 controls
+						player.updateJoystick(player, event);
+					}
 
-					// Update Xbox 360 controls
-					player.updateJoystick(player, event);
 				}
 
 				// Customize Character results
@@ -417,6 +477,10 @@ void PlayGame::Show(LWindow &gWindow, SDL_Renderer *gRenderer, PlayGame::Result 
 
 // Update everything
 void PlayGame::Update(LWindow &gWindow, SDL_Renderer *gRenderer) {
+
+	// Update tiles
+	TilesUpdate();
+
 	// Update Variables
 	bool test;
 	test = true;
@@ -489,20 +553,6 @@ void PlayGame::Update(LWindow &gWindow, SDL_Renderer *gRenderer) {
 	// Damage text: for pirate
 	tex.update(text);
 
-	// Update camera
-	if (camLeft) {
-		camx -= 3;
-	}
-	if (camRight) {
-		camx += 3;
-	}
-	if (camUp) {
-		camy -= 3;
-	}
-	if (camDown) {
-		camy += 3;
-	}
-
 	///////////////////////////////////////////////////////////////////////////////////////////////
 	///////////////////////////////////////////////////////////////////////////////////////////////
 	//---------------------------- Player's Camera & Editor's Camera ----------------------------//
@@ -557,7 +607,7 @@ void PlayGame::Update(LWindow &gWindow, SDL_Renderer *gRenderer) {
 	///////////////////////////////////////////////////////////////////////////////////////////////
 
 	// center camera on target
-	{
+	if (camlock) {
 		//camx = player.x + player.w / 2 - gWindow.getWidth()/2;
 		//camy = player.y + player.h / 2 - gWindow.getHeight()/2;
 		float bmx, bmy;
@@ -576,7 +626,7 @@ void PlayGame::Update(LWindow &gWindow, SDL_Renderer *gRenderer) {
 		}
 
 		// Camera bounds
-		if( camx < 0 ){
+		/*if( camx < 0 ){
 			camx = 0;
 		}
 		if( camy < 0 ){
@@ -587,8 +637,37 @@ void PlayGame::Update(LWindow &gWindow, SDL_Renderer *gRenderer) {
 		}
 		if( camy+screenHeight > map.h ){
 			camy = map.h-screenHeight ;
-		}
+		}*/
 	}
+
+	// Update camera
+	if (camLeft) {
+		camx -= 12;
+	}
+	if (camRight) {
+		camx += 12;
+	}
+	if (camUp) {
+		camy -= 12;
+	}
+	if (camDown) {
+		camy += 12;
+	}
+
+
+	///////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////////
+	//--------------------------------------- Editor Updates ------------------------------------//
+
+	// update Monsters
+	pira.EditorUpdate(pirate, mouseX+camx, mouseY+camy, mx+camx, my+camy, camx, camy);
+
+	// Editor tile, item and pirate placement controls
+	UpdateEditorTilePlacement();
+
+	//--------------------------------------- Editor Updates ------------------------------------//
+	///////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////////
 }
 
 // Render foreground
@@ -743,7 +822,7 @@ void PlayGame::RenderDebug(SDL_Renderer *gRenderer)
 // Render text
 void PlayGame::RenderText(SDL_Renderer *gRenderer, LWindow &gWindow) {
 
-	/* Render Player Health */
+	// Render Player Health
 	for (int i=0; i<10; i++) {
 		SDL_Rect tempRect = {24 + i * 10, screenHeight - 20 - 64 - 48, 6, 32};
 		SDL_SetRenderDrawColor(gRenderer, 60, 60, 60, 255);
@@ -755,7 +834,7 @@ void PlayGame::RenderText(SDL_Renderer *gRenderer, LWindow &gWindow) {
 		SDL_RenderFillRect(gRenderer, &tempRect);
 	}
 
-	/* Render Player Ammo */
+	//  Render Player Ammo
 	for (int i=0; i<player.ammoClip; i++) {
 		SDL_Rect tempRect = {24 + i * 10, screenHeight - 20 - 64, 6, 32};
 		SDL_SetRenderDrawColor(gRenderer, 60, 60, 60, 255);
@@ -767,7 +846,7 @@ void PlayGame::RenderText(SDL_Renderer *gRenderer, LWindow &gWindow) {
 		SDL_RenderFillRect(gRenderer, &tempRect);
 	}
 
-	/* Render Player Grenades */
+	//  Render Player Grenades
 	for (int i=0; i<player.grenadesMax; i++) {
 		SDL_Rect tempRect = {24 + i * 38, screenHeight - 20 - 24, 32, 24};
 		SDL_SetRenderDrawColor(gRenderer, 60, 60, 60, 255);
@@ -786,14 +865,14 @@ void PlayGame::RenderText(SDL_Renderer *gRenderer, LWindow &gWindow) {
 		}
 	}
 
-	/* Render Player Ammo */
+	//  Render Player Ammo
 	std::stringstream tempss;
 	tempss << player.ammo << "/" << player.ammoClip;
 	gText.setAlpha(255);
 	gText.loadFromRenderedText(gRenderer, tempss.str().c_str(), {255,255,255}, gFont);
 	gText.render(gRenderer, 28 + player.ammoClip * 10, screenHeight - 20 - 64, gText.getWidth(), gText.getHeight());
 
-	/* Render Player Ammo */
+	// Render Player Ammo
 	tempss.str(std::string());
 	tempss << player.grenades << "/" << player.grenadesMax;
 	gText.setAlpha(255);
@@ -801,7 +880,7 @@ void PlayGame::RenderText(SDL_Renderer *gRenderer, LWindow &gWindow) {
 	gText.render(gRenderer, 28 + player.grenadesMax * 36, screenHeight - 20 - 24 - 5, gText.getWidth(), gText.getHeight());
 
 	// Render map
-	//map.render(gRenderer, camx, camy);
+	// map.render(gRenderer, camx, camy);
 
 	// Render any text spawned
 	for (int i = 0; i < 100; i++) {
@@ -827,6 +906,114 @@ void PlayGame::RenderText(SDL_Renderer *gRenderer, LWindow &gWindow) {
 	gText.setAlpha(255);
 	gText.render(gRenderer, 0,0, gText.getWidth(), gText.getHeight());
 
+
+
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//----------------------------------------------------- Render Editor's Hand -------------------------------------------//
+	// Editor debug menu
+	if (debug) {
+
+		// Render collision tile debug
+		/*for (int i = 0; i < tc.max; i++) {
+			if (tilec[i].alive){
+				if (tilec[i].mouse) {
+					SDL_Rect tempr = {tilec[i].x+tilec[i].w/2-4-camx, tilec[i].y+tilec[i].h/2-4-camy, 8, 8};
+					SDL_SetRenderDrawColor(gRenderer, 255, 0, 0, 255);
+					SDL_RenderFillRect(gRenderer, &tempr);
+					std::stringstream tempss;
+					tempss << tilec[i].layer;
+					gText.loadFromRenderedText(gRenderer, tempss.str().c_str(), {255,255,255}, gFont);
+					gText.setAlpha(255);
+					gText.render(gRenderer, tilec[i].x - camx, tilec[i].y - camy, gText.getWidth()/4, gText.getHeight()/4);
+				}
+				if (tilec[i].mouseBox) {
+					SDL_Rect tempr = {tilec[i].x+4 - camx, tilec[i].y+4 - camy, tilec[i].w-8, tilec[i].h-8};
+					SDL_SetRenderDrawColor(gRenderer, 0, 255, 0, 255);
+					SDL_RenderDrawRect(gRenderer, &tempr);
+				}
+			}
+		}*/
+
+		// Render hand debug info
+		std::stringstream tempss;
+		tempss << "place_type: "  << place_type   << ", id: " 		 << tl.id
+			   << ", layer: "     << tl.layer << ", editor: " 	 << editor
+			   << ", tl.multiW: " << tl.multiW    << ", tl.multiH: " << tl.multiH
+			   << ", tc.multiH: " << tl.multiH
+			   << ", tl.tilew: "  << tl.tilew     << ", tl.tileh: "  << tl.tileh
+			   << ", tl.Count: "  << tl.tileCount
+			   << ", camlock: " << camlock << ", part.count: " << part.count;
+		gText.loadFromRenderedText(gRenderer, tempss.str().c_str(), {255,255,255}, gFont, 200);
+		gText.setAlpha(255);
+		gText.render(gRenderer, 0+screenWidth-gText.getWidth(), 100, gText.getWidth(), gText.getHeight());
+
+		// Render tile debug
+		if (debug){
+			/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+			//------------------------------------- Render what's in Editors hand -------------------------------------//
+			if (place_type == 0) {
+				// Render Tile debug
+				tl.RenderDebug(gRenderer, tile, mouseX, mouseY, mx, my, camx, camy, &rTiles[0], tb.tilesWidth);
+			}else if (place_type == 1) {
+
+				// Render tile in hand
+				/*SDL_Color color;
+				int tcWidth;
+				int tcHeight;
+				if (tc.type == 0) {
+					color = {0, 0, 255};
+					tcWidth = 16;
+					tcHeight = 13;
+				}else if (tc.type == 1) {
+					color = {255, 0, 255};
+					tcWidth = 16;
+					tcHeight = 16;
+				}else if (tc.type == 2) {
+					color = {255, 255, 0};
+					tcWidth = 16;
+					tcHeight = 16;
+				}
+				for (int j = 0; j < tc.multiW; j++) {
+					for (int h = 0; h < tc.multiH; h++) {
+						//SDL_Rect tempr = {newMx, newMy, 32*multiW, 32*multiH};
+						SDL_Rect tempr = {mouseX+j*tc.tilew, mouseY+h*tc.tileh, tcWidth, tcHeight};
+						SDL_SetRenderDrawColor(gRenderer, color.r, color.g, color.b, 255);
+						SDL_RenderDrawRect(gRenderer, &tempr);
+					}
+				}*/
+			}else if (place_type == 2) {
+				// Render Item in Hand
+				// Render mouse coordinates snapped to grid
+				///////////////obj.gItem.setAlpha(110);
+				//////////////////obj.gItem.render(gRenderer, mouseX, mouseY, 16, 16, &obj.rClips[obj.id]);
+				SDL_Rect tempRect = {mouseX, mouseY, 200, 200};
+				SDL_SetRenderDrawColor(gRenderer, 255, 255, 255, 255);
+				SDL_RenderDrawRect(gRenderer, &tempRect);
+			}else if (place_type == 3) {
+				for (int j = 0; j < pira.multiW; j++) {
+					for (int h = 0; h < pira.multiH; h++) {
+						if (pira.type == 0) {
+							pira.gTexture.setAlpha(110);
+							pira.gTexture.render(gRenderer, mouseX+j*200, mouseY+h*200, 200, 200);
+						} else if (pira.type == 1) {
+							pira.gTexture.setAlpha(110);
+							pira.gTexture.render(gRenderer, mouseX+j*200, mouseY+h*200, 200, 200);
+						}
+					}
+				}
+
+			}
+			//------------------------------------- Render what's in Editors hand -------------------------------------//
+			/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		}
+
+		// Render Tile Bar
+		tb.Render(gRenderer, tilebar, tl.id);
+	}
+	//----------------------------------------------------- Render Editor's Hand -------------------------------------------//
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 }
 
 // Render Editor UI
@@ -888,6 +1075,35 @@ void PlayGame::RenderHand(SDL_Renderer *gRenderer) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////// Global Functions ////////////////////////////////////////////////////////
 //-------------------------------------------------------------------------------------------------------------------------------//
+
+void PlayGame::TilesUpdate() {
+
+	// If tile layer goes below 0, loop around to 6
+	if (tl.layer < 0) {
+		tl.layer = 6;
+	}
+
+	// If tile layer goes above 6, loop around to 0
+	if (tl.layer > 6) {
+		tl.layer = 0;
+	}
+
+	// If tile id goes below 0, loop around to <uniqueTiles>
+	if (tl.id < 0) {
+		tl.id = tb.uniqueTiles;
+	}
+
+	// If tile id goes above  <uniqueTiles>, loop around to 0
+	if (tl.id > tb.uniqueTiles) {
+		tl.id = 0;
+	}
+
+	// Loop around back to 3
+	if (place_type > 3) {
+		place_type = 0;
+	}
+}
+
 
 // Check collision: Player and Asteroid
 void PlayGame::checkCollisionPlayerAsteroid(Players &player, Asteroid asteroid[]) {
@@ -1445,6 +1661,26 @@ void PlayGame::knockbackEffect(float targetX, float targetY, int targetW, int ta
 	objectVY += force * (sin( (3.14159265/180)*(angle) ));
 }
 
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//------------------------------------------------------ Save Functions ------------------------------------------------------//
+
+
+void PlayGame::ClearLevel(Particle &part, Particle particles[]) {
+	tl.RemoveAll(tile);
+	////////obj.RemoveAll(item);
+	/////////part.RemoveAll(particles);
+	pira.RemoveAll(pirate);
+}
+
+
+//------------------------------------------------------ Save Functions ------------------------------------------------------//
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //-------------------------------------------- Editor Controls --------------------------------------------//
@@ -1463,16 +1699,6 @@ PlayGame::Result PlayGame::mousePressed(SDL_Event event){
 		// If holding down right mouse button
 		if (event.button.button == SDL_BUTTON_RIGHT) {
 			rightClick = true;
-			// normal enemy
-			pira.spawn(pirate, mx+camx-80/2, my+camy-80/2,
-					  80, 80, 160, 160,
-					  0.0, randDouble(3.6, 4.4), 0, 250,
-					  40, 57, 17);
-			// boss enemy
-			/*pira.spawn(pirate, mx+camx-250/2, my+camy-250/2,
-					  250, 250, 512, 512,
-					  0.0, randDouble(3.6, 4.4), 1, 1000,
-					  119, 256, -49);*/
 		}
 
 		// If holding down middle mouse button
@@ -1525,9 +1751,6 @@ void PlayGame::editorOnKeyDown( SDL_Keycode sym, Particle &part, Particle partic
 		break;
 	case SDLK_RIGHT:			// camera right
 		camRight = true;
-		break;
-	case SDLK_y:				// camera lock
-		camlock = (!camlock);
 		break;
 	case SDLK_b:				// Change Tile collision properties
 		if (shift) {
@@ -1616,7 +1839,7 @@ void PlayGame::editorOnKeyDown( SDL_Keycode sym, Particle &part, Particle partic
 			}else if (place_type==2) {
 			//////////////	obj.id--;
 			}else if (place_type==3) {
-			//////////////	mon.type--;
+				pira.type--;
 			}
 		}else{
 			if (place_type==0) {
@@ -1625,8 +1848,8 @@ void PlayGame::editorOnKeyDown( SDL_Keycode sym, Particle &part, Particle partic
 			//	tc.type++;
 			}else if (place_type==2) {
 			///////////////	obj.id++;
-			}else if (place_type==3) {
-			///////////////	mon.type++;
+			}else if (place_type==2) {
+				pira.type++;
 			}
 		}
 		break;
@@ -1647,7 +1870,7 @@ void PlayGame::editorOnKeyDown( SDL_Keycode sym, Particle &part, Particle partic
 		break;
 	case SDLK_SPACE:							// Tile, remove all Tiles (and Collision Tiles)
 		if (shift && editor) {
-			////////////////////////ClearLevel(part, particles);
+			ClearLevel(part, particles);
 
 			/*if (place_type == 0 ) {
 			//	tl.removeAllTiles(tile);
@@ -1682,9 +1905,9 @@ void PlayGame::editorOnKeyDown( SDL_Keycode sym, Particle &part, Particle partic
 				//}
 			}
 		}else if (place_type == 3) {
-			//if (mon.multiW > 1) {
-				////////////////////mon.multiW -= 1;
-			//}
+			if (pira.multiW > 1) {
+				pira.multiW -= 1;
+			}
 		}
 		break;
 	case SDLK_RIGHTBRACKET:						// Tile, add block in x-axis or change tile size
@@ -1703,7 +1926,7 @@ void PlayGame::editorOnKeyDown( SDL_Keycode sym, Particle &part, Particle partic
 				//tc.multiW += 1;
 			}
 		}else if (place_type == 3) {
-			//////////////mon.multiW += 1;
+			pira.multiW += 1;
 		}
 		break;
 	case SDLK_MINUS:							// Tile, subtract block in y-axis or change tile size
@@ -1730,9 +1953,9 @@ void PlayGame::editorOnKeyDown( SDL_Keycode sym, Particle &part, Particle partic
 				//}
 			}
 		}else if (place_type == 3) {
-			//if (mon.multiH > 1) {
-			///////////////	mon.multiH -= 1;
-			//}
+			if (pira.multiH > 1) {
+				pira.multiH -= 1;
+			}
 		}
 		break;
 	case SDLK_EQUALS:							// Tile, add block in y-axis
@@ -1751,7 +1974,7 @@ void PlayGame::editorOnKeyDown( SDL_Keycode sym, Particle &part, Particle partic
 				//tc.multiH += 1;
 			}
 		}else if (place_type == 3) {
-			//mon.multiH += 1;
+			pira.multiH += 1;
 		}
 		break;
 	case SDLK_9: {								// Load Room
@@ -1791,6 +2014,81 @@ void PlayGame::editorOnKeyUp( SDL_Keycode sym ) {
 	case SDLK_RIGHT:
 		camRight = false;
 		break;
+	}
+}
+// tile and tilebar not showing up
+
+void PlayGame::UpdateEditorTilePlacement() {
+
+	// Editor
+	if (editor) {
+		if (leftClick) {
+			/* If not on Tile-bar, place other tiles */
+			if (!tb.touching) {
+				//if (editor) {
+
+					// Spawn a tile
+					if (place_type == 0) {
+						tl.SpawnMultiple(tile, mouseX, mouseY, camx, camy, &rTiles[0]);
+					}
+
+					// Spawn collision tiles (redacted)
+					else if (place_type == 1) {
+						// tc.spawn(tilec, mouseX, mouseY, camx, camy);
+					}
+
+					// Spawn items
+					else if (place_type == 2) {
+						// obj.Spawn(item, mouseX+camx, mouseY+camy, 16, 16);
+					}
+
+					// Spawn pirates
+					else if (place_type == 3) {
+						// normal enemy
+						pira.spawn(pirate, mx+camx-80/2, my+camy-80/2,
+								  80, 80, 160, 160,
+								  0.0, randDouble(3.6, 4.4), 0, 250,
+								  40, 57, 17);
+						// boss enemy
+						/*pira.spawn(pirate, mx+camx-250/2, my+camy-250/2,
+								  250, 250, 512, 512,
+								  0.0, randDouble(3.6, 4.4), 1, 1000,
+								  119, 256, -49);*/
+					}
+				//}
+			}else{
+				tb.Select(tilebar, tl.id);
+			}
+		}
+		if (rightClick) {
+			// If not on Tile-bar, place other tiles
+			if (!tb.touching) {
+				if (editor) {
+
+					// Remove  tile
+					if (place_type == 0) {
+						tl.Remove(tile, 1);
+					}
+
+					// Remove collision tile
+					else if (place_type == 1) {
+						//	tc.remove(tilec, 1);
+					}
+
+					// Remove items
+					else if (place_type == 2) {
+						//	obj.Remove(item, 1);
+					}
+
+					// Remove pirate
+					else if (place_type == 3) {
+						pira.Remove(pirate, 1);
+					}
+				}
+			}else{
+				tb.Select(tilebar, tl.id);
+			}
+		}
 	}
 }
 

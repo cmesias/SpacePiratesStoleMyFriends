@@ -14,12 +14,17 @@
 
 class Pirate : public Helper {
 public:	// Media
+	/*
+	 * 12 monsters in Total
+	 * 108 clips
+	 * 9 x 12 ( 9 clips going to the right, 12  going down)
+	 */
+	SDL_Rect clip[108];
 	LTexture gTexture;
 	LTexture gBoss;
-	int count;
-	const int max = 100;
 	bool asteroidsClear;
-public:
+
+public:	// Min variables
 	float xCenter, yCenter;
 	int radius;
 	float x,y;
@@ -28,11 +33,6 @@ public:
 	float angle;
 	float vX,vY;
 	float speed;
-	/* Types of Enemies
-	 * 0: Normal enemy
-	 * 1: Boss enemy
-	 */
-	int type;
 	double health;
 	double damage;
 	float distance;
@@ -81,7 +81,7 @@ public:	// variables used for calculating shooting barrel coordinates
 	/* Location of Enemy's Barrel for shooting */
 	double barrelX, barrelY;
 
-public:
+public:	// Main functions
 	void Init(Pirate pirate[]);
 	void Load(SDL_Renderer* gRenderer);
 	void Free();
@@ -97,6 +97,33 @@ public:
 				Mix_Chunk* sLazer, Mix_Chunk* sPistolReload,
 				int camx, int camy);
 	void render(SDL_Renderer* gRenderer, Pirate pirate[], int camx, int camy);
+
+
+public: // Editor Variables
+
+	/* Types of Enemies
+	 * 0: Normal enemy
+	 * 1: Boss enemy
+	 */
+	int type;
+
+	int count;
+	const int max = 100;
+	const int maxTypes = 13;	// max number of unique Monsters
+	int multiW = 1;
+	int multiH = 1;
+
+	// Mouse
+	bool mouse;				// mouse is on top of Monster
+	bool mouseBox;			// if tile placement size of on top of monster
+
+public:	// Editor methods
+
+	void Remove(Pirate pirate[], int click);
+
+	void RemoveAll(Pirate pirate[]);
+
+	void EditorUpdate(Pirate pirate[], int newMx, int newMy, int mex, int mey, int camx, int camy);
 };
 
 #endif /* ENGINE_PIRATE_H_ */

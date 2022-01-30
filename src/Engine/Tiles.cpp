@@ -23,7 +23,7 @@
 
 void Tile::Load(SDL_Renderer *gRenderer) {
 	gTiles.loadFromFile(gRenderer, "resource/gfx/cmesias/tile00.png");
-	gTileBreak.loadFromFile(gRenderer, "resource/gfx/tile-break.png");
+	gTileBreak.loadFromFile(gRenderer, "resource/gfx/cmesias/tile-break.png");
 	int j = 0;
 	for (int w = 0; w < 10; w++) {
 		rTileBreak[j].x = 0 + w * 16;

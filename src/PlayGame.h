@@ -175,44 +175,9 @@ public:	// Variables
 	// Render text
 	void RenderText(SDL_Renderer *gRenderer, LWindow &gWindow);
 
-public: // Load spawn point for level
+public: // Functions for Tiles
 
-	void loadSpawnPoint(int level);
-
-public: // Player variables
-
-	int playerStateLevel;			// Current stage level
-	float spawnX = 0, spawnY = 0;	// This is where the player will spawn on the map
-	float doorX = 100;				// The player needs to reach this door or tile to advance to the next level
-	float doorY = 100;
-
-	/* Placement types
-	 * 0: Tiles
-	 * 2: Collision Tiles (depreciated)
-	 * 3: Monsters
-	 *
-	 */
-	int place_type;
-	int clampSize;					// Magnet pixel size
-	float mouseX;
-	float mouseY;
-
-	// Editors camera
-	bool camUp = false;
-	bool camDown = false;
-	bool camLeft = false;
-	bool camRight = false;
-
-public:	// Editor controls
-
-	void editorOnKeyDown(SDL_Keycode sym, Particle &part, Particle particles[]);
-
-	void editorOnKeyUp(SDL_Keycode sym);
-
-public: // Render Editor UI
-
-	// Render tile in hand
-	void RenderHand(SDL_Renderer *gRenderer);
+	void TilesUpdate();
 
 public:	// Functions mixed with other classes
 	// Check collision between Particle & Asteroid
@@ -243,17 +208,63 @@ public:	// Functions that serve multiple purposes
 						 float objectX, float objectY, int objectW, int objectH,
 						 float &objectVX,float &objectVY, float force);
 
+public: // Saved data - variables
+
+	int playerStateLevel;			// Current stage level
+	float spawnX = 0, spawnY = 0;	// This is where the player will spawn on the map
+	float doorX = 100, doorY = 100;	// The player needs to reach this door or tile to advance to the next level
+
+public: // Load data - spawn point for level
+
+	void loadSpawnPoint(int level);
+
+public: // Render Editor UI
+
+	// Render tile in hand
+	void RenderHand(SDL_Renderer *gRenderer);
+
 private:	// used for some debugging
 	bool debug;
 	bool editor;
 	int mx, my;
 	bool quit;
+	bool ctrl;
 	bool shift;
 	SDL_Event event;
 
 	// Buttons for editor
 	bool rightClick = false;
 	bool leftClick;
+
+public: // Editor variables
+
+	/* Placement types
+	 * 0: Tiles
+	 * 2: Collision Tiles (depreciated)
+	 * 3: pirates
+	 *
+	 */
+	int place_type;
+	int clampSize;					// Magnet pixel size
+	float mouseX;
+	float mouseY;
+
+	// Editors camera
+	bool camUp = false;
+	bool camDown = false;
+	bool camLeft = false;
+	bool camRight = false;
+
+	// Editor controls
+	void editorOnKeyDown(SDL_Keycode sym, Particle &part, Particle particles[]);
+
+	void editorOnKeyUp(SDL_Keycode sym);
+
+	void UpdateEditorTilePlacement();
+
+	// Clear current working level
+	void ClearLevel(Particle &part, Particle particles[]);
+
 };
 
 #endif /* PLAYGAME_H_ */
