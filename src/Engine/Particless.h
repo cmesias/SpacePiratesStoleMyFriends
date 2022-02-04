@@ -68,10 +68,13 @@ public:
 
 public:	// basic functions
 	void init(Particle particle[]);
+	void Remove(Particle particle[], int i);
+	void RemoveAll(Particle particle[]);
 	void load(SDL_Renderer* gRenderer);
 	void free();
 
 public:	// functions
+
 	void spawnParticleAngle(Particle particle[], std::string tag, int type,
 			float spawnX, float spawnY,
 			int spawnW, int spawnH,
@@ -83,6 +86,19 @@ public:	// functions
 			int deathTimer, int deathTimerSpeed,
 			bool sizeDeath, float deathSpe,
 			bool decay = false, float decaySpeed = 0.0);
+
+	void spawnBulletParticleAngle(Particle particle[], std::string tag, int type,
+			float spawnX, float spawnY,
+			int spawnW, int spawnH,
+			double angle, double speed,
+			double damage,
+			SDL_Color color, int layer,
+			int angleSpe, int angleDir,
+			int alpha, int alphaspeed,
+			int deathTimer, int deathTimerSpeed,
+			bool sizeDeath, float deathSpe,
+			bool decay = false, float decaySpeed = 0.0);
+
 	/*void fireParticle(Particle particle[], int type, int damage,
 										   int spawnx, int spawny, int w, int h,
 										   double speed, float vX, float vY,

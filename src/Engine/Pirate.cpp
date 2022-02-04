@@ -5,6 +5,8 @@
  *      Author: Carl
  */
 
+#include <fstream>
+
 #include "../Engine/Pirate.h"
 
 #include <math.h>
@@ -78,6 +80,24 @@ void Pirate::spawn(Pirate pirate[], float x, float y,
 	{
 		if (!pirate[i].alive)
 		{
+			// Determine ammo and magazine size of pirate
+			// based on type of pirate being spawn
+			if (type == 0) {
+				pirate[i].atkSpeed = 2.75;
+				pirate[i].ammo = 9;
+				pirate[i].magSize = 9;
+				pirate[i].reloadSpeed = 4.25;
+				pirate[i].reloadTimer = 0.0;
+				pirate[i].atkRange = 700;
+			}
+			if (type == 1) {
+				pirate[i].atkSpeed = 9.65;
+				pirate[i].ammo = 30;
+				pirate[i].magSize = 30;
+				pirate[i].reloadSpeed = 9.25;
+				pirate[i].reloadTimer = 0.0;
+				pirate[i].atkRange = 825;
+			}
 			pirate[i].tag 				= "enemy";
 			pirate[i].x 				= x;
 			pirate[i].y 				= y;
@@ -114,29 +134,9 @@ void Pirate::spawn(Pirate pirate[], float x, float y,
 			pirate[i].attacking 		= false;
 			pirate[i].collision 		= false;
 			pirate[i].onScreen 			= false;
-
-			// Determine ammo and magazine size of pirate
-			// based on type of pirate being spawn
-			if (type == 0) {
-				pirate[i].atkSpeed = 2.75;
-				pirate[i].ammo = 9;
-				pirate[i].magSize = 9;
-				pirate[i].reloadSpeed = 4.25;
-				pirate[i].reloadTimer = 0.0;
-				pirate[i].atkRange = 700;
-			}
-			if (type == 1) {
-				pirate[i].atkSpeed = 9.65;
-				pirate[i].ammo = 30;
-				pirate[i].magSize = 30;
-				pirate[i].reloadSpeed = 9.25;
-				pirate[i].reloadTimer = 0.0;
-				pirate[i].atkRange = 825;
-			}
 			pirate[i].atkSpeedTimer = 0.0;
 			pirate[i].shooting 		= false;
 			pirate[i].reloading 	= false;
-
 			//-------------------------------------------------------------------------//
 			pirate[i].alive 			= true;
 			count++;
@@ -662,4 +662,150 @@ void Pirate::EditorUpdate(Pirate pirate[], int newMx, int newMy, int mex, int me
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+// Set default stats of pirates based on type
+void Pirate::SetStatsBasedOnType(Pirate pirate[], int i) {
+
+	// Determine ammo and magazine size of pirate
+	// based on type of pirate being spawn
+
+	// Normal pirate
+	if (type == 0) {
+		pirate[i].atkSpeed = 2.75;
+		pirate[i].ammo = 9;
+		pirate[i].magSize = 9;
+		pirate[i].reloadSpeed = 4.25;
+		pirate[i].reloadTimer = 0.0;
+		pirate[i].atkRange = 700;
+	}
+	// Boss pirate
+	if (type == 1) {
+		pirate[i].atkSpeed = 9.65;
+		pirate[i].ammo = 30;
+		pirate[i].magSize = 30;
+		pirate[i].reloadSpeed = 9.25;
+		pirate[i].reloadTimer = 0.0;
+		pirate[i].atkRange = 825;
+	}
+
+	// Default stats for all pirates
+	pirate[i].tag 				= "enemy";
+	pirate[i].vX 				= 0.0;
+	pirate[i].vY 				= 0.0;
+	pirate[i].angle 			= 0.0;
+	//------------------------------------------------------------------------//
+	// initial centering of pirate's circle collision shape
+	float radians 				= (3.1415926536/180)*(0.0);
+	float Cos 					= floor(cos(radians)*10+0.5)/10;
+	float Sin 					= floor(sin(radians)*10+0.5)/10;
+	pirate[i].distanceHeadIsFromCenterOfImage	= distanceHeadIsFromCenterOfImage;
+	int newW					= distanceHeadIsFromCenterOfImage * (-Cos);
+	int newH 					= distanceHeadIsFromCenterOfImage * (-Sin);
+	pirate[i].xCenter 			= pirate[i].x+pirate[i].w/2 + newW - pirate[i].radius;
+	pirate[i].yCenter 			= pirate[i].y+pirate[i].h/2 + newH - pirate[i].radius;
+	//------------------------------------------------------------------------//
+	pirate[i].damage			= 5;
+	pirate[i].distance 			= 1;
+	pirate[i].timer 			= 0;
+	pirate[i].attackLength		= 180;
+	pirate[i].attacking 		= false;
+	pirate[i].collision 		= false;
+	pirate[i].onScreen 			= false;
+	pirate[i].atkSpeedTimer 	= 0.0;
+	pirate[i].shooting 			= false;
+	pirate[i].reloading 		= false;
+	//-------------------------------------------------------------------------//
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+//--------------------------------------- Save/Load functions ---------------------------------------//
+
+std::string Pirate::SaveData(Pirate pirate[])
+{
+	// Create new file to store Tile data
+	std::ofstream tileDataFile;
+
+	// Create stringstream to store Tile Data
+	std::stringstream tempData;
+
+	// Write Level Size on first line
+	tempData << count << "\n";
+
+	// Write the rest of the Tile Data after the first line
+	for (int i = 0; i < max; i++) {
+		if (pirate[i].alive) {
+			tempData << pirate[i].x 			<< " "
+					 << pirate[i].y 			<< " "
+					 << pirate[i].w  			<< " "
+					 << pirate[i].h  			<< " "
+					 << pirate[i].realw  		<< " "
+					 << pirate[i].realh  		<< " "
+					 << pirate[i].bulletW  		<< " "
+					 << pirate[i].bulletH  		<< " "
+					 << pirate[i].radius  		<< " "
+					 << pirate[i].speed  		<< " "
+					 << pirate[i].tag  			<< " "
+					 << pirate[i].health  		<< " "
+					 << pirate[i].type  		<< " "
+			   	   	 << pirate[i].alive 		<< "\n";
+		}
+	}
+	return tempData.str().c_str();
+}
+
+void Pirate::LoadData(Pirate pirate[], int level)
+{
+	//Load Tile
+	count = 0;
+
+	// Initialize defaults stats
+	Init(pirate);
+
+	// Open Level File
+	std::stringstream fileName;
+	fileName << "resource/data/maps/";
+	fileName << "level" << level;
+	fileName << "/Monster.mp";
+	std::fstream fileTileDataL(fileName.str().c_str());
+
+	// Read first line for monster count
+	fileTileDataL >> count;
+
+	// Read the rest of the lines for Tile data
+	while( fileTileDataL.good() ){
+		for (int i = 0; i < max; i++) {
+			if (!pirate[i].alive) {
+				fileTileDataL >>  pirate[i].x 				>>
+								  pirate[i].y 				>>
+								  pirate[i].w 				>>
+								  pirate[i].h 				>>
+								  pirate[i].realw 			>>
+								  pirate[i].realh 			>>
+								  pirate[i].bulletW 		>>
+								  pirate[i].bulletH 		>>
+								  pirate[i].radius 			>>
+								  pirate[i].speed 			>>
+								  pirate[i].health 			>>
+								  pirate[i].tag 			>>
+								  pirate[i].type 			>>
+								  pirate[i].alive;
+				break;
+			}
+		}
+	}
+	fileTileDataL.close();
+
+	// After loading Enemies, set their Spells
+	for (int i = 0; i < max; i++) {
+		if (pirate[i].alive) {
+			SetStatsBasedOnType(pirate, i);
+		}
+	}
+}
+
+//--------------------------------------- Save/Load functions ---------------------------------------//
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////
 

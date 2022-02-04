@@ -37,7 +37,33 @@
 // TODO 1-27-2022 [ ] - look at door states, such as when the player has enough keys then draw the exit door
 
 
-// TODO 1-28-2022 [ ] - add tiles to init and update
+// TODO 1-28-2022 [x] - add tiles to init and update
+
+// DONE 1-31-2022 [x] - added ability to save and load tiles, pirates, spawn point for player and spawn point for door
+// DONE 1-31-2022 [x] - added ability to save and load highest level achieved
+
+// TODO 1-31-2022 [ ] - Find out why tiles are still not appearing??? Check each function in the Tile class and see if all functions are being used properly
+// TODO 1-31-2022 [ ] - Implement a way for the user to choose a level stage
+
+/*
+ * EDITOR CONTROLS (2-1-2022)
+ * H 					= Debug mode
+ * P					= Editor mode/Player mode
+ * I 					= Ascend tile type in hand
+ * SHIFT + I 			= Descend tile type in hand
+ * L					= Acend layer number in hand
+ * SHIFT + L			= Descend layer number in hand
+ *
+ * Left Mouse Click 	= Place tile in world
+ * Right Mouse Click 	= Delete tile in world
+ * Y					= Camera lock
+ *
+ * 0					= Save number of keys to aquire, and set map size, also save level data such as tiles and other objects in the world
+ *
+ *
+ *
+ *
+ */
 
 void PlayGame::Init() {
 	// Upon entry
@@ -53,6 +79,8 @@ void PlayGame::Init() {
 	camy 				= 0;
 
 	// Initialize
+	currentLevelStage = 1;
+	playerStageLevel = -1;
 
 	// Tile class
 	tl.Init(tile);
@@ -75,7 +103,7 @@ void PlayGame::Init() {
 	spaw.init(spawner);
 
 	// Player class
-	player.reset(map.x+map.w/2-player.w/2, map.y+map.h/2-player.h/2, "Player1", false);
+	player.reset(0+tl.levelWidth/2-player.w/2, 0+tl.levelHeight/2-player.h/2, "Player1", false);
 
 	// Player load score
 	player.loadScore();
@@ -174,8 +202,10 @@ void PlayGame::Load(LWindow &gWindow, SDL_Renderer *gRenderer) {
 	// load media for other classes
 
 	// Tile class load
+	tl.Load(gRenderer);
 
 	// Tilebar class load
+	tb.Load(gRenderer);
 
 	// Pirate class load
 	pira.Load(gRenderer);
@@ -223,6 +253,8 @@ void PlayGame::Free() {
 	part.free();
 	enem.free();
 	spaw.free();
+	tl.Free();
+	tb.Free();
 	aste.freeResources();
 }
 
@@ -241,15 +273,18 @@ void PlayGame::Show(LWindow &gWindow, SDL_Renderer *gRenderer, PlayGame::Result 
     // Play Music, looped
 	//Mix_FadeInMusic(sAmbientMusic, -1, 0);
 
+	// Load resources
+	LoadLevel(part, particles);
+
+	// Hides mouse, and traps mouse in game so it doesn't go out
+	SDL_SetRelativeMouseMode(SDL_TRUE);
+	SDL_ShowCursor(false);
+
 	// While loop
 	while (!quit) {
 
 		// Start FPS cap
 		fps.start();
-
-		// Hides mouse, and traps mouse in game so it doesn't go out
-		SDL_SetRelativeMouseMode(SDL_TRUE);
-		SDL_ShowCursor(false);
 
 		// Get mouse position
 		SDL_GetMouseState(&mx, &my);
@@ -316,6 +351,45 @@ void PlayGame::Show(LWindow &gWindow, SDL_Renderer *gRenderer, PlayGame::Result 
 					case SDLK_RSHIFT:
 						shift = true;
 						break;
+					case SDLK_0:
+						if (editor) {
+							std::stringstream mapSizeSS;
+							mapSizeSS << GetInput(gWindow, gRenderer, quit, "Enter Keys required and Level Size (i.e.: 3 128 128): ");
+							// Check if the Editor entered any numbers
+							if (mapSizeSS.str().size() > 0) {
+								mapSizeSS >> tl.requiredKeys >> tl.levelWidth >> tl.levelHeight;
+							}
+						}
+						if (editor && !shift) {
+							// Editor visual message
+							std::stringstream tempss;
+							tempss << "Saving level data...";
+							tex.spawn(text, 0, 0, 0.0, 0.0, 255, tempss.str().c_str());
+
+							// Save Data for spawn coordinates
+							std::stringstream SpawnCoordinatesData;
+							SpawnCoordinatesData << spawnX << " " << spawnY << " " << doorX << " " << doorY;
+
+							// Save Data for Tiles
+							std::stringstream TileSaveData;
+							TileSaveData << tl.SaveData(tile);
+
+							// Save Data for Items
+							std::stringstream PirateSaveData;
+							PirateSaveData << pira.SaveData(pirate);
+
+							// Go to saving interface
+							SaveLevel(gWindow, gRenderer, quit,
+									  SpawnCoordinatesData.str().c_str(),
+									  TileSaveData.str().c_str(),
+									  PirateSaveData.str().c_str());
+
+							// Editor visual message
+							tempss.str(std::string());
+							tempss << "Finished saving.";
+							tex.spawn(text, 0, 0, 0.0, 0.0, 255, tempss.str().c_str());
+						}
+						break;
 					case SDLK_ESCAPE:
 						start(gWindow, gRenderer, player);
 						/*pau.pause(pauseResult, quit, gWindow, gRenderer,
@@ -356,10 +430,10 @@ void PlayGame::Show(LWindow &gWindow, SDL_Renderer *gRenderer, PlayGame::Result 
 						camlock = (!camlock);
 						break;
 					case SDLK_LCTRL:
-						ctrl = true;
+						ctrl = false;
 						break;
 					case SDLK_RCTRL:
-						shift = true;
+						shift = false;
 						break;
 					case SDLK_LSHIFT:
 						shift = false;
@@ -490,15 +564,21 @@ void PlayGame::Update(LWindow &gWindow, SDL_Renderer *gRenderer) {
 	//	part.genStars(particle, gWindow.getWidth(), gWindow.getHeight());
 	}
 
+	// Update tiles
+	tl.Update(tile, gWindow, mouseX+camx, mouseY+camy, mx+camx, my+camy, camx, camy, &rTiles[0]);
+
+	// Update Tile bar
+	tb.Update(tilebar, gWindow, mx, my, camx, camy);
+
 	// Update Particles
-	part.updateStarParticles(particles, map.x, map.y, map.w, map.h);
-	part.updateBulletParticles(particles, map.x, map.y, map.w, map.h);
+	part.updateStarParticles(particles, 0, 0, tl.levelWidth, tl.levelHeight);
+	part.updateBulletParticles(particles, 0, 0, tl.levelWidth, tl.levelHeight);
 
 	// Update Asteroids
 	aste.updateAsteroid(asteroid, particles, part,
 								  player.alive, player.shield, player.score, enem.mileScore, player.health,
 								  mx, my, camx, camy, gWindow.getWidth(), gWindow.getHeight(),
-								  map.x, map.y, map.w, map.h);
+								  0, 0, tl.levelWidth, tl.levelHeight);
 
 	// Update Spawner: spawns an Asteroid
 	//spaw.update(spawner, asteroid, aste, player.x+player.w/2, player.y+player.h/2, mx, my, camx, camy);
@@ -509,7 +589,7 @@ void PlayGame::Update(LWindow &gWindow, SDL_Renderer *gRenderer) {
 				  enemy, enem,
 				  particles, part,
 				  mx, my, camx, camy,
-				  map.x+map.w/2-player.w/2, map.y+map.h/2-player.h/2,
+				  0+tl.levelWidth/2-player.w/2, 0+tl.levelHeight/2-player.h/2,
 				  gWindow, gRenderer,
 				  gText, gFont26, {255,255,255},
 				  sAtariBoom, sLazer, sGrenade,
@@ -525,7 +605,7 @@ void PlayGame::Update(LWindow &gWindow, SDL_Renderer *gRenderer) {
 				particles, part,
 					player.alive,
 					player.x+player.w/2, player.y+player.h/2, player.w/2,
-					player.score, map.x, map.y, map.w, map.h,
+					player.score, 0, 0, tl.levelWidth, tl.levelHeight,
 					sLazer, sAtariBoom);
 	}
 
@@ -632,11 +712,11 @@ void PlayGame::Update(LWindow &gWindow, SDL_Renderer *gRenderer) {
 		if( camy < 0 ){
 			camy = 0;
 		}
-		if( camx+screenWidth > map.w ){
-			camx = map.w-screenWidth;
+		if( camx+screenWidth > tl.levelWidth ){
+			camx = tl.levelWidth-screenWidth;
 		}
-		if( camy+screenHeight > map.h ){
-			camy = map.h-screenHeight ;
+		if( camy+screenHeight > tl.levelHeight ){
+			camy = tl.levelHeight-screenHeight ;
 		}*/
 	}
 
@@ -675,7 +755,7 @@ void PlayGame::RenderFG(SDL_Renderer *gRenderer, LWindow &gWindow) {
 	// render map
 	for (int j=0; j<6; j++) {
 		for (int i=0; i<6; i++) {
-			gBG.render(gRenderer, map.x+i*837-camx, map.y+j*837-camy, 837, 837);
+			//gBG.render(gRenderer, 0+i*837-camx, 0+j*837-camy, 837, 837);
 		}
 	}
 }
@@ -699,7 +779,7 @@ void PlayGame::Render(SDL_Renderer *gRenderer, LWindow &gWindow) {
 		if (player.collectedKeys >= tl.requiredKeys) {
 			gDoor.render(gRenderer, doorX-camx, doorY-camy, 200, 200, &rDoor[1]);
 		}else{
-			gDoor.render(gRenderer, doorX-camx, doorY-camy, 200, 200, &rDoor[1]);
+			gDoor.render(gRenderer, doorX-camx, doorY-camy, 200, 200, &rDoor[0]);
 		}
 	}
 
@@ -750,22 +830,23 @@ void PlayGame::RenderDebug(SDL_Renderer *gRenderer)
 		SDL_Rect tempRect = {player.x-camx, player.y-camy, player.w, player.h};
 		SDL_SetRenderDrawColor(gRenderer, 255, 255, 255, 255);
 		SDL_RenderDrawRect(gRenderer, &tempRect);
+
 		// Box, centered
 		tempRect = {player.x2-camx, player.y2-camy, player.w, player.h};
 		SDL_SetRenderDrawColor(gRenderer, 0, 255, 0, 255);
 		SDL_RenderDrawRect(gRenderer, &tempRect);
 
-		/* Render Particle debug */
+		// Render Particle debug
 		for (int i = 0; i < part.max; i++) {
 			if (particles[i].alive) {
 				// Original box, untouched
-				SDL_Rect tempRect = {particles[i].x-camx, particles[i].y-camy, particles[i].w, particles[i].h};
+				/*SDL_Rect tempRect = {particles[i].x-camx, particles[i].y-camy, particles[i].w, particles[i].h};
 				SDL_SetRenderDrawColor(gRenderer, 255, 255, 255, 255);
 				SDL_RenderDrawRect(gRenderer, &tempRect);
 				// Box, centered
 				tempRect = {particles[i].x2-camx, particles[i].y2-camy, particles[i].w, particles[i].h};
 				SDL_SetRenderDrawColor(gRenderer, 0, 255, 0, 255);
-				SDL_RenderDrawRect(gRenderer, &tempRect);
+				SDL_RenderDrawRect(gRenderer, &tempRect);*/
 
 				// Render circle
 				gCircle.setColor(255,255,255);
@@ -783,7 +864,7 @@ void PlayGame::RenderDebug(SDL_Renderer *gRenderer)
 			}
 		}
 
-		/* Render Pirate debug */
+		// Render Pirate debug
 		for (int i = 0; i < pira.max; i++) {
 			if (pirate[i].alive) {
 				// Original box, untouched
@@ -816,6 +897,11 @@ void PlayGame::RenderDebug(SDL_Renderer *gRenderer)
 		tempRect = {0-camx, 0-camy, tl.levelWidth, tl.levelHeight};
 		SDL_SetRenderDrawColor(gRenderer, 0, 255, 0, 255);
 		SDL_RenderDrawRect(gRenderer, &tempRect);
+
+		// Original box, untouched
+		SDL_Rect tempRecte = {mx-32, my-32, 64, 64};
+		SDL_SetRenderDrawColor(gRenderer, 0, 255, 0, 255);
+		SDL_RenderDrawRect(gRenderer, &tempRecte);
 	}
 }
 
@@ -937,13 +1023,14 @@ void PlayGame::RenderText(SDL_Renderer *gRenderer, LWindow &gWindow) {
 
 		// Render hand debug info
 		std::stringstream tempss;
-		tempss << "place_type: "  << place_type   << ", id: " 		 << tl.id
-			   << ", layer: "     << tl.layer << ", editor: " 	 << editor
-			   << ", tl.multiW: " << tl.multiW    << ", tl.multiH: " << tl.multiH
-			   << ", tc.multiH: " << tl.multiH
-			   << ", tl.tilew: "  << tl.tilew     << ", tl.tileh: "  << tl.tileh
-			   << ", tl.Count: "  << tl.tileCount
-			   << ", camlock: " << camlock << ", part.count: " << part.count;
+		tempss << "place_type: "  	<< place_type   << ", id: " 		 	<< tl.id
+			   << ", layer: "     	<< tl.layer 	<< ", editor: " 	 	<< editor
+			   << ", tl.multiW: " 	<< tl.multiW    << ", tl.multiH: " 		<< tl.multiH
+			   << ", tc.multiH: " 	<< tl.multiH
+			   << ", tl.tilew: "  	<< tl.tilew     << ", tl.tileh: "  		<< tl.tileh
+			   << ", tl.Count: "  	<< tl.tileCount
+			   << ", camlock: " 	<< camlock 		<< ", part.count: " 	<< part.count
+			   << ", screenWidth: " << screenWidth<< ", screenHeight: " 	<< screenHeight;
 		gText.loadFromRenderedText(gRenderer, tempss.str().c_str(), {255,255,255}, gFont, 200);
 		gText.setAlpha(255);
 		gText.render(gRenderer, 0+screenWidth-gText.getWidth(), 100, gText.getWidth(), gText.getHeight());
@@ -954,7 +1041,7 @@ void PlayGame::RenderText(SDL_Renderer *gRenderer, LWindow &gWindow) {
 			//------------------------------------- Render what's in Editors hand -------------------------------------//
 			if (place_type == 0) {
 				// Render Tile debug
-				tl.RenderDebug(gRenderer, tile, mouseX, mouseY, mx, my, camx, camy, &rTiles[0], tb.tilesWidth);
+				tl.RenderDebug(gRenderer, tile, mouseX, mouseY, mx, my, camx, camy, &rTiles[0]);
 			}else if (place_type == 1) {
 
 				// Render tile in hand
@@ -1021,7 +1108,7 @@ void PlayGame::RenderHand(SDL_Renderer *gRenderer) {
 	if (debug){
 		if (place_type == 0) {
 			// Render Tile debug
-			tl.RenderDebug(gRenderer, tile, mouseX, mouseY, mx, my, camx, camy, &rTiles[0], tb.tilesWidth);
+			tl.RenderDebug(gRenderer, tile, mouseX, mouseY, mx, my, camx, camy, &rTiles[0]);
 		}
 		// Render " " class objects in hand
 		/*else if (place_type == 1) {
@@ -1382,6 +1469,115 @@ void PlayGame::checkCollisionParticlePlayer(Particle particle[], Particle &part,
 	}	// end Player
 }
 
+
+void PlayGame::checkCollisionTilePlayer() {
+
+	//////////////////////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////////////////////
+	//-------------------------------- Collision with Tiles --------------------------------//
+	// Update collision with Tiles
+	//tl.checkCollision(tile, x, y, w, h, y, vY);
+
+	// Update collision with Tiles
+	// Player Velocity X Axis
+	player.AccelerateXWithvX();
+
+	// Create a new collision boundary around the player,
+	// we will use this instead of the player's original boundary
+	SDL_Rect rectA;
+	rectA.x = player.x+4;
+	rectA.y = player.y+8;
+	rectA.w = player.w-8;
+	rectA.h = player.h/2;
+
+	// Move player back if coming into contact with a tile
+	bool moveBack;
+	moveBack = false;
+
+	// Loop through all tiles if the player is touching them
+	for (int i = 0; i < tl.max; i++) {
+		if (tile[i].alive){
+			if (tile[i].collide) {
+				SDL_Rect rectB;
+				rectB.x = tile[i].x;
+				rectB.y = tile[i].y;
+				rectB.w = tile[i].w;
+				rectB.h = tile[i].h;
+				if  ( checkCollisionRect( rectA, rectB )) {
+					// If Player has more than 0 keys, then unlock door, otherwise continue collision check
+					if (player.collectedKeys > 0 && player.useKey) {
+						player.useKey = false;
+						if (tile[i].id == 65 || tile[i].id == 69 || tile[i].id == 73 || tile[i].id == 77 ||
+							tile[i].id == 67 || tile[i].id == 71 || tile[i].id == 75 || tile[i].id == 79) {
+							player.collectedKeys--;
+							Mix_PlayChannel(-1, sRockBreak, 0);
+							tile[i].alive = false;
+							tl.tileCount--;
+						}
+					}
+					// Continue handling collision
+					moveBack = true;
+				}
+			}
+		}
+	}
+	if (moveBack){
+		player.DeccelerateXWithvX();
+	}
+
+	// Update collision with Tiles
+	// Player Velocity Y Axis
+	player.AccelerateYWithvY();
+
+	// Create a new collision boundary around the player,
+	// we will use this instead of the player's original boundary
+	rectA.x = player.x+4;
+	rectA.y = player.y+8;
+	rectA.w = player.w-8;
+	rectA.h = player.h/2;
+
+	// Move player back if coming into contact with a tile
+	moveBack = false;
+
+	// Loop through all tiles if the player is touching them
+	for (int i = 0; i < tl.max; i++) {
+		if (tile[i].alive){
+			if (tile[i].collide) {
+				SDL_Rect rectB;
+				rectB.x = tile[i].x;
+				rectB.y = tile[i].y;
+				rectB.w = tile[i].w;
+				rectB.h = tile[i].h;
+				if  ( checkCollisionRect( rectA, rectB )) {
+					// If Player has more than 0 keys, then unlock door, otherwise continue collision check
+					if (player.collectedKeys > 0 && player.useKey) {
+						player.useKey = false;
+						if (tile[i].id == 65 || tile[i].id == 69 || tile[i].id == 73 || tile[i].id == 77 ||
+							tile[i].id == 67 || tile[i].id == 71 || tile[i].id == 75 || tile[i].id == 79) {
+							player.collectedKeys--;
+							Mix_PlayChannel(-1, sRockBreak, 0);
+							tile[i].alive = false;
+							tl.tileCount--;
+						}
+					}
+					// Continue handling collision
+					moveBack = true;
+				}
+			}
+		}
+	}
+	if (moveBack){
+		player.DeccelerateYWithvY();
+	}
+
+	//-------------------------------- Collision with Tiles --------------------------------//
+	//////////////////////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////////////////////
+
+	// Update player stuff that need to be updated after
+	//player.UpdateAfter();
+}
+
 void PlayGame::checkCollisionGrenadePlayer() {
 		for (int i = 0; i < part.max; i++) {
 			if (particles[i].alive) {
@@ -1406,17 +1602,17 @@ void PlayGame::checkCollisionGrenadePlayer() {
 					particles[i].time += particles[i].deathTimerSpeed;
 
 					// Particle map collision
-					if (particles[i].x+particles[i].w < map.x) {
-						particles[i].x = map.x+map.w-particles[i].w;
+					if (particles[i].x+particles[i].w < 0) {
+						particles[i].x = 0+tl.levelWidth-particles[i].w;
 					}
-					if (particles[i].x > map.x+map.w) {
-						particles[i].x = map.x-particles[i].w;
+					if (particles[i].x > 0+tl.levelWidth) {
+						particles[i].x = 0-particles[i].w;
 					}
-					if (particles[i].y+particles[i].h < map.y) {
-						particles[i].y = map.y+map.h-particles[i].h;
+					if (particles[i].y+particles[i].h < 0) {
+						particles[i].y = 0+tl.levelHeight-particles[i].h;
 					}
-					if (particles[i].y > map.y+map.h) {
-						particles[i].y = map.y-particles[i].h;
+					if (particles[i].y > 0+tl.levelHeight) {
+						particles[i].y = 0-particles[i].h;
 					}
 
 					// Grenade has a smoke Particle effect coming out of it
@@ -1611,10 +1807,10 @@ void PlayGame::spawnAsteroidsNow2()
 		player.wave++;
 
 		for (int i=0; i<40+player.increment; i++){
-			int randx 		= rand() % map.w;
-			int randy 		= rand() % map.h;
+			int randx 		= rand() % tl.levelWidth;
+			int randy 		= rand() % tl.levelHeight;
 			//s_spawn.spawn(spawner, 0+randx, 0+randy, randw, randh);
-			pira.spawn(pirate, map.x+randx, map.y+randy,
+			pira.spawn(pirate, 0+randx, 0+randy,
 					  80, 80, 128, 128,
 					  0.0, randDouble(3.6, 4.1), 0, 100,
 					  11, 57, 17);
@@ -1624,7 +1820,50 @@ void PlayGame::spawnAsteroidsNow2()
 		player.shield			= true;
 		player.shieldT			= 180;
 	}
+}
 
+// Make sure all objects on the map do not overextend over the map
+void PlayGame::ClampObjectsToLevelSize(Particle &part, Particle particles[]) {
+
+	// Collision with door
+	if (player.collectedKeys >= tl.requiredKeys && player.useKey) {
+		if (checkCollision(player.x, player.y, player.w, player.h, doorX, doorY, 16, 16)) {
+			// Increase Stage level
+			playerStageLevel++;
+			// Change to next Stage Level
+			LoadLevel(part, particles);
+		}
+	}
+	// Player
+	if (player.x+player.w < 0) {
+		player.x = 0;
+	}
+	if (player.x > 0+tl.levelWidth) {
+		player.x =0+tl.levelWidth-player.w;
+	}
+	if (player.y+player.h < 0) {
+		player.y = 0;
+	}
+	if (player.y > 0+tl.levelHeight) {
+		player.y = 0+tl.levelHeight-player.h;
+	}
+	// Monster
+	for (int i = 0; i < pira.max; i++) {
+		if (pirate[i].alive) {
+			if( pirate[i].x < 0 ){
+				pirate[i].x = 0;
+			}
+			if( pirate[i].y < 0 ){
+				pirate[i].y = 0;
+			}
+			if( pirate[i].x+pirate[i].w > tl.levelWidth ){
+				pirate[i].x = tl.levelWidth-pirate[i].w;
+			}
+			if( pirate[i].y+pirate[i].h > tl.levelHeight ){
+				pirate[i].y = tl.levelHeight-pirate[i].h ;
+			}
+		}
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1660,25 +1899,6 @@ void PlayGame::knockbackEffect(float targetX, float targetY, int targetW, int ta
 	objectVX += force * (cos( (3.14159265/180)*(angle) ));
 	objectVY += force * (sin( (3.14159265/180)*(angle) ));
 }
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//------------------------------------------------------ Save Functions ------------------------------------------------------//
-
-
-void PlayGame::ClearLevel(Particle &part, Particle particles[]) {
-	tl.RemoveAll(tile);
-	////////obj.RemoveAll(item);
-	/////////part.RemoveAll(particles);
-	pira.RemoveAll(pirate);
-}
-
-
-//------------------------------------------------------ Save Functions ------------------------------------------------------//
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1977,7 +2197,7 @@ void PlayGame::editorOnKeyDown( SDL_Keycode sym, Particle &part, Particle partic
 			pira.multiH += 1;
 		}
 		break;
-	case SDLK_9: {								// Load Room
+	case SDLK_8: {								// Load Room
 			/*tl.loadTiles(tile);
 			tc.loadTiles(tilec);
 			//loadcTiles(ctile);
@@ -1988,7 +2208,7 @@ void PlayGame::editorOnKeyDown( SDL_Keycode sym, Particle &part, Particle partic
 
 			break;
 		}
-	case SDLK_0: {								// Save Room
+	case SDLK_9: {								// Save Room
 			/*tl.saveTiles(tile);
 			tc.saveTiles(tilec);
 			//savecTiles(ctile);
@@ -1996,6 +2216,9 @@ void PlayGame::editorOnKeyDown( SDL_Keycode sym, Particle &part, Particle partic
 			std::stringstream tempss;
 			tempss << "Saving Tiles";
 			tex.spawn(text, 0, 0, 0.0, 0.0, 255, tempss.str().c_str());*/
+
+			// Save current farthest level reached
+			SaveFarthestLevelAchieved();
 			break;
 		}
 	}
@@ -2097,5 +2320,177 @@ void PlayGame::UpdateEditorTilePlacement() {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//---------------------------------------------------- Save/Load Functions ----------------------------------------------------//
+
+
+// Save current level stage
+void PlayGame::SaveFarthestLevelAchieved(){
+
+	///////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////
+	//------------------------------- Save Level Data ---------------------------//
+
+	std::stringstream PathDir;
+
+	std::stringstream defaultDir;
+	defaultDir << "resource/data/";
+
+	//Save # of Blocks
+	std::ofstream newPirateFile;
+	PathDir.str(std::string());
+
+	// Set directory to save
+	PathDir << defaultDir.str().c_str();
+
+	// Set file name and extension
+	PathDir << "farthestAchievedLevel.mp";
+
+	// Open File
+	newPirateFile.open(PathDir.str().c_str());
+
+	// Store data given from Editor to store in File
+	newPirateFile << playerStageLevel;
+
+	// Close
+	newPirateFile.close();
+	//------------------------------- Save Level Data ---------------------------//
+	///////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////
+}
+
+// Load farthest level achieved
+void PlayGame::LoadFarthestLevelAchieved(){
+
+	// Create string-stream to store data from file
+	std::stringstream filename;
+
+	// Set file location and name of file
+	filename << "resource/data/farthestAchievedLevel.mp";
+
+	// Open file based on string above
+	std::fstream farthestLevelFile( filename.str().c_str() );
+
+	// If file is open
+	if (farthestLevelFile.is_open()) {
+
+		// Set game level to farthest saved level achieved
+		farthestLevelFile >>  playerStageLevel;
+	}
+
+	// Error opening saved file, create a new one starting at level 1
+	else{
+
+		// Create string-stream that will hold our data to be saved
+		std::stringstream filename;
+
+		// Set file location and name of file
+		filename << "resource/data/farthestAchievedLevel.mp";
+
+		// Create new file based on string above
+		std::ofstream newFarthestLevelFile( filename.str().c_str() );
+
+		// If successfully created farthestAchievedLevel.mp file
+		if (newFarthestLevelFile.is_open()) {
+			newFarthestLevelFile << 1;
+			playerStageLevel = 1;
+		}
+		newFarthestLevelFile.close();
+	}
+	farthestLevelFile.close();
+}
+
+void PlayGame::loadSpawnPoint(){
+	// open config file
+	std::stringstream filename;
+	filename << "resource/data/maps/level" << playerStageLevel;
+	filename << "/spawn.mp";
+	std::fstream fileSpawn( filename.str().c_str() );
+	if (fileSpawn.is_open()) {
+		fileSpawn >>  spawnX >> spawnY >>  doorX >> doorY;
+		player.x		= spawnX;
+		player.y		= spawnY-6;
+	}
+	// Error opening spawn.mp file
+	else{
+		// Creating default spawn.mp
+		std::stringstream filename;
+		filename << "data/maps/level" << playerStageLevel;
+		filename << "/spawn.mp";
+		std::ofstream newSpawnFile( filename.str().c_str() );
+		// If successfully created spawn.mp file
+		if (newSpawnFile.is_open()) {
+			newSpawnFile << "32 32 48 32";
+			spawnX			= 32;
+			spawnY			= 32;
+			doorX			= 48;
+			doorY			= 32;
+			player.x		= spawnX;
+			player.y		= spawnY-6;
+		}
+		newSpawnFile.close();
+	}
+	fileSpawn.close();
+}
+
+void PlayGame::ClearLevel(Particle &part, Particle particles[]) {
+	tl.RemoveAll(tile);
+	////////obj.RemoveAll(item);
+	/////////part.RemoveAll(particles);
+	pira.RemoveAll(pirate);
+}
+
+void PlayGame::LoadLevel(Particle &part, Particle particles[]) {
+
+	// Reset Player movements and direction
+	player.collectedKeys = 0;
+	player.health = 200;
+	player.useKey = false;
+	player.moveleft = false;
+	player.moveright = false;
+	player.moveup = false;
+	player.movedown = false;
+
+	// Load level farthest achieved
+	LoadFarthestLevelAchieved();
+
+	// Remove Particles
+	part.RemoveAll(particles);
+
+	// Load Tiles
+	tl.LoadData(tile, currentLevelStage);
+
+	// Load Monsters
+	pira.LoadData(pirate, playerStageLevel);
+
+	// Load level spawn point
+	loadSpawnPoint();
+
+	// Load Collision Tiles
+	//tc.loadTiles(tilec, level);
+
+	// Load Items (Items) Tiles
+	//////////obj.LoadData(item, level);
+}
+
+void PlayGame::ResetLevel(Particle &part, Particle particles[]) {
+	player.collectedKeys = 0;
+	player.health = 200;
+	player.useKey = false;
+	player.moveleft = false;
+	player.moveright = false;
+	player.moveup = false;
+	player.movedown = false;
+	LoadLevel(part, particles);
+}
+
+
+//------------------------------------------------------ Save Functions ------------------------------------------------------//
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 

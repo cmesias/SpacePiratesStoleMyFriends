@@ -23,6 +23,7 @@
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_mouse.h>
 
+// TODO 2-2-2022 [ ] - fix the tilbar and tiles, but mostly tilbar, fix the sizes when spawned in world
 
 void TileBar::Load(SDL_Renderer *gRenderer) {
 	gTileBar.loadFromFile(gRenderer, "resource/gfx/cmesias/tile00.png");
@@ -93,54 +94,34 @@ void TileBar::Spawn(TileBar tilebar[], int x, int y, int w, int h,
 	}
 }
 
+// Function to spawn the tilebar, but spawn them one by one
 void TileBar::SpawnMultiple(TileBar tilebar[]) {
-	// tile textures
-	for (int h = 0; h < tilesHeight; h++) {
-		for (int w = 0; w < tilesWidth; w++) {
-			//for (int j = 0; j < 26; j++) {
-				//for (int i = 0; i < 8; i++) {
-			Spawn(tilebar, 0 + w * 8,
-						   0 + (h * 8),
-						   8, 8,
-						   0 + w * tileW, 0 + (h * tileH),
+
+	// Loop the texture clips going vertically
+	for (int h = 0; h < amountOfTilesVertically; h++) {
+
+		// Then, loop the texture clips going horizontally
+		for (int w = 0; w < amountOfTilesHoriztontally; w++) {
+
+			int x = 0;
+			int y = 0;
+			int width = 32;
+			int height = 32;
+			int spacingWidth = 32;
+			int spacingHeight = 32;
+			int startClipX = 0;
+			int startClipY = 0;
+
+			// Spawn the tilebar, one by one
+			Spawn(tilebar, x + w * spacingWidth, y + (h * spacingHeight),
+						   width, height,
+						   startClipX + w * tileW, startClipY + (h * tileH),
 						   tileW, tileH, "off");
 		}
+
 		// Reset x margin
 		MARGINX = 0;
-		// Add y margin
-		//MARGINY++;
-	}
-	// door textures
-	for (int h = 0; h < 4; h++) {
-		for (int w = 0; w < 4; w++) {
-			//for (int j = 0; j < 26; j++) {
-				//for (int i = 0; i < 8; i++) {
-			Spawn(tilebar, 0 + w * 16,
-						   64 + (h * 16),
-						   16, 16,
-						   0 + w * 32, 128 + (h * 32),
-						   32, 32, "off");
-		}
-		// Reset x margin
-		MARGINX = 0;
-		// Add y margin
-		//MARGINY++;
-	}
-	// castle textures
-	int spawnH = 64 + 32;
-	for (int h = 0; h < 21; h++) {
-		for (int w = 0; w < tilesWidth; w++) {
-			//for (int j = 0; j < 26; j++) {
-				//for (int i = 0; i < 8; i++) {
-			Spawn(tilebar, 0 + w * 8,
-					       spawnH + (h * 8),
-						   8, 8,
-						   0 + w * 16,
-						   256 + (h * 16),
-						   16, 16, "off");
-		}
-		// Reset x margin
-		MARGINX = 0;
+
 		// Add y margin
 		//MARGINY++;
 	}
@@ -158,16 +139,16 @@ void TileBar::Select(TileBar tilebar[], int &tile_selection) {
 void TileBar::Move(TileBar tilebar[], std::string direction){
 	for (int i = 0; i < TILES_UNIQUE; i++) {
 		if (direction == "left"){
-			tilebar[i].x -= 4;
+			tilebar[i].x -= 50;
 		}
 		if (direction == "right"){
-			tilebar[i].x += 4;
+			tilebar[i].x += 50;
 		}
 		if (direction == "up"){
-			tilebar[i].y -= 4;
+			tilebar[i].y -= 50;
 		}
 		if (direction == "down"){
-			tilebar[i].y += 4;
+			tilebar[i].y += 50;
 		}
 	}
 }
@@ -199,11 +180,10 @@ void TileBar::Render(SDL_Renderer *gRenderer, TileBar tilebar[], int tile_select
 			//if (tilebar[i].screen){
 
 				gRect.setAlpha(45);
-				gRect.render(gRenderer, tilebar[i].x, tilebar[i].y,tilebar[i].w, tilebar[i].h, &rRect[5], 0);
+				gRect.render(gRenderer, tilebar[i].x, tilebar[i].y, tilebar[i].w, tilebar[i].h, &rRect[5], 0);
 
 				gTileBar.setAlpha(90);
-				gTileBar.render(gRenderer, tilebar[i].x, tilebar[i].y,
-						tilebar[i].w, tilebar[i].h, &tilebar[i].clip);
+				gTileBar.render(gRenderer, tilebar[i].x, tilebar[i].y, tilebar[i].w, tilebar[i].h, &tilebar[i].clip);
 			//}
 
 				// Selected Tile on tile-bar

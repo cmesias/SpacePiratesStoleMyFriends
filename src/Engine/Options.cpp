@@ -314,14 +314,14 @@ void Options::start(LWindow &gWindow, SDL_Renderer *gRenderer, Players &player)
 		au.update(bar, helper.screenWidth-bar[0].rect.w-72, title[0].y, mx, my, leftclick, HIGHLIGHT_INDEX);
 
 		for (int i=0; i<5; i++) {
-			if (checkCollision(mx, my, 1, 1, title[i].x-3, title[i].y-3, title[i].w+3, title[i].h+3)) {
+			if (helper.checkCollision(mx, my, 1, 1, title[i].x-3, title[i].y-3, title[i].w+3, title[i].h+3)) {
 				mouseTitle[i] = true; }else{ mouseTitle[i] = false;
 			}
 		}
 
 		/* Mouse on Apply Bar or Video button */
 		for (int i=0; i<5; i++) {
-			if (checkCollision(mx, my, 1, 1, applyButton[i].x, applyButton[i].y, applyButton[i].w, applyButton[i].h)) {
+			if (helper.checkCollision(mx, my, 1, 1, applyButton[i].x, applyButton[i].y, applyButton[i].w, applyButton[i].h)) {
 				applyMouse[i] = true; }else{ applyMouse[i] = false;
 			}
 		}
@@ -361,9 +361,9 @@ void Options::start(LWindow &gWindow, SDL_Renderer *gRenderer, Players &player)
 
 					// Determine color
 					if (index==i) {
-						gText.loadFromRenderedText(gRenderer, tempss.str().c_str(), {244,144,20}, gFont13);
+						gText.loadFromRenderedText(gRenderer, tempss.str().c_str(), {244,144,20}, gFont26);
 					}else{
-						gText.loadFromRenderedText(gRenderer,tempss.str().c_str(), {255,255,255}, gFont13);
+						gText.loadFromRenderedText(gRenderer,tempss.str().c_str(), {255,255,255}, gFont26);
 					}
 
 					// Render text
@@ -383,9 +383,9 @@ void Options::start(LWindow &gWindow, SDL_Renderer *gRenderer, Players &player)
 
 					// Determine color
 					if (index==i) {
-						gText.loadFromRenderedText(gRenderer, tempss.str().c_str(), {244,144,20}, gFont13);
+						gText.loadFromRenderedText(gRenderer, tempss.str().c_str(), {244,144,20}, gFont26);
 					}else{
-						gText.loadFromRenderedText(gRenderer, tempss.str().c_str(), {255,255,255}, gFont13);
+						gText.loadFromRenderedText(gRenderer, tempss.str().c_str(), {255,255,255}, gFont26);
 					}
 
 					// Render text
@@ -415,7 +415,7 @@ void Options::start(LWindow &gWindow, SDL_Renderer *gRenderer, Players &player)
 						// Render Volume number
 						tempss.str(std::string());
 						tempss << bar[i].value;
-						gText.loadFromRenderedText(gRenderer, tempss.str().c_str(), {255,255,255}, gFont13);
+						gText.loadFromRenderedText(gRenderer, tempss.str().c_str(), {255,255,255}, gFont26);
 						gText.render(gRenderer, bar[i].rect.x+bar[i].rect.w-gText.getHeight()-10,
 													 bar[i].rect.y+bar[i].rect.h/2-gText.getHeight()/2,
 													 gText.getWidth(), gText.getHeight());
@@ -430,7 +430,7 @@ void Options::start(LWindow &gWindow, SDL_Renderer *gRenderer, Players &player)
 						// Render Volume number
 						tempss.str(std::string());
 						tempss << bar[i].value;
-						gText.loadFromRenderedText(gRenderer, tempss.str().c_str(), {255,255,255}, gFont13);
+						gText.loadFromRenderedText(gRenderer, tempss.str().c_str(), {255,255,255}, gFont26);
 						gText.render(gRenderer, bar[i].rect.x+bar[i].rect.w-gText.getHeight()-10,
 													 bar[i].rect.y+bar[i].rect.h/2-gText.getHeight()/2,
 													 gText.getWidth(), gText.getHeight());
@@ -440,7 +440,7 @@ void Options::start(LWindow &gWindow, SDL_Renderer *gRenderer, Players &player)
 					std::stringstream tempss;
 					tempss.str(std::string());
 					tempss << bar[i].name;
-					gText.loadFromRenderedText(gRenderer, tempss.str().c_str(), {255,255,255}, gFont13);
+					gText.loadFromRenderedText(gRenderer, tempss.str().c_str(), {255,255,255}, gFont26);
 					gText.render(gRenderer, bar[i].rect.x-gText.getWidth()-10,
 												 bar[i].rect.y+bar[i].rect.h/2-gText.getHeight()/2,
 												 gText.getWidth(), gText.getHeight());
@@ -473,7 +473,7 @@ void Options::start(LWindow &gWindow, SDL_Renderer *gRenderer, Players &player)
 				SDL_RenderFillRect(gRenderer, &tempr);
 
 				// Render the current Resolution name being selected
-				gText.loadFromRenderedText(gRenderer, tempsss.str().c_str(), {255,255,255}, gFont13);
+				gText.loadFromRenderedText(gRenderer, tempsss.str().c_str(), {255,255,255}, gFont26);
 				int individualBoxWidth = bar[0].rect.w/5;
 				gText.render(gRenderer,  ((bar[3].rect.x+individualBoxWidth*4)+individualBoxWidth) - individualBoxWidth/2 - gText.getWidth()/2,
 											 bar[3].rect.y+bar[3].rect.h/2-gText.getHeight()/2,
@@ -502,7 +502,7 @@ void Options::start(LWindow &gWindow, SDL_Renderer *gRenderer, Players &player)
 						SDL_SetRenderDrawColor(gRenderer, 55, 55, 55, 155);
 						SDL_RenderFillRect(gRenderer, &tempr);
 					}
-					gText.loadFromRenderedText(gRenderer, ssF.str().c_str(), {255,255,255}, gFont13);
+					gText.loadFromRenderedText(gRenderer, ssF.str().c_str(), {255,255,255}, gFont26);
 					gText.render(gRenderer, bar[j].rect.x+bar[j].rect.w-65-10,
 												 bar[j].rect.y+bar[j].rect.h/2-gText.getHeight()/2,
 												 gText.getWidth(), gText.getHeight());
@@ -546,10 +546,10 @@ void Options::start(LWindow &gWindow, SDL_Renderer *gRenderer, Players &player)
 					}
 					SDL_RenderDrawRect(gRenderer, &temprV);
 					if (i==0) {
-						gText.loadFromRenderedText(gRenderer, "APPLY AUDIO", {255,255,255}, gFont13);
+						gText.loadFromRenderedText(gRenderer, "APPLY AUDIO", {255,255,255}, gFont26);
 					}
 					if (i==1) {
-						gText.loadFromRenderedText(gRenderer, "APPLY VIDEO", {255,255,255}, gFont13);
+						gText.loadFromRenderedText(gRenderer, "APPLY VIDEO", {255,255,255}, gFont26);
 					}
 					gText.render(gRenderer, applyButton[i].x+applyButton[i].w/2-gText.getWidth()/2,
 							applyButton[i].y+applyButton[i].h/2-gText.getHeight()/2,
@@ -573,7 +573,7 @@ void Options::start(LWindow &gWindow, SDL_Renderer *gRenderer, Players &player)
 
 					/* Mouse on Keep or Revert button */
 					for (int i=0; i<2; i++) {
-						if (checkCollision(mx, my, 1, 1, confirmButton[i].x, confirmButton[i].y, confirmButton[i].w, confirmButton[i].h)) {
+						if (helper.checkCollision(mx, my, 1, 1, confirmButton[i].x, confirmButton[i].y, confirmButton[i].w, confirmButton[i].h)) {
 							confirmMouse[i] = true;
 						}
 						else{
@@ -609,7 +609,7 @@ void Options::start(LWindow &gWindow, SDL_Renderer *gRenderer, Players &player)
 					// Render confirmation text
 					std::stringstream tempss;
 					tempss << "Keep these display settings? Reverting to previous display settings in " << timer/60 << ".";
-					gText.loadFromRenderedText(gRenderer, tempss.str().c_str(), {255,255,255}, gFont13);
+					gText.loadFromRenderedText(gRenderer, tempss.str().c_str(), {255,255,255}, gFont26);
 					gText.render(gRenderer, helper.screenWidth/2-gText.getWidth()/2,
 												 150,
 												 gText.getWidth(),
@@ -628,9 +628,9 @@ void Options::start(LWindow &gWindow, SDL_Renderer *gRenderer, Players &player)
 						}
 						SDL_RenderDrawRect(gRenderer, &confirmButton[i]);
 						if (i==0) {
-							gText.loadFromRenderedText(gRenderer, "Keep", {255,255,255}, gFont13);
+							gText.loadFromRenderedText(gRenderer, "Keep", {255,255,255}, gFont26);
 						}else{
-							gText.loadFromRenderedText(gRenderer, "Revert", {255,255,255}, gFont13);
+							gText.loadFromRenderedText(gRenderer, "Revert", {255,255,255}, gFont26);
 						}
 						gText.render(gRenderer, confirmButton[i].x+confirmButton[i].w/2-gText.getWidth()/2,
 													 confirmButton[i].y+confirmButton[i].h/2-gText.getHeight()/2,
@@ -655,15 +655,401 @@ void Options::start(LWindow &gWindow, SDL_Renderer *gRenderer, Players &player)
 	}
 }
 
-// Collision check
-bool Options::checkCollision(int x, int y, int w, int h, int x2, int y2, int w2, int h2) {
-	bool collide;
-	if (x+w > x2 && x < x2 + w2 && y+h > y2 && y < y2 + h2) {
-		collide = true;
-	}else{
-		collide = false;
+//Get's input from user and returns it
+void Options::SaveLevel(LWindow &gWindow, SDL_Renderer *gRenderer, bool &mainLoop,
+						std::string SpawnCoordinatesData,
+						std::string TileSaveData,
+						std::string PirateSaveData){
+
+	// Set to False so Player can see their mouse
+	SDL_SetRelativeMouseMode(SDL_FALSE);
+
+	// Show cursor
+	SDL_ShowCursor(true);
+
+	// Loop bool
+	bool getInputSave = true;
+
+	// Store user input in string
+	std::string inputDirectory = "file name...";
+
+	// What you are currently typing
+	std::string typing = "nothing";
+	int typingAnim = 0;
+	std::string slash = "";
+
+	//Start getting input from user
+	SDL_StartTextInput();
+
+	//Mouse properties
+	int mx, my;
+
+	//input text box
+	SDL_Rect customRect = {0,0,0,0};
+	SDL_Event e;
+
+	while (getInputSave) {
+
+		// Start FPS cap
+		helper.fps.start();
+
+		//Mouse Position
+		SDL_GetMouseState(&mx, &my);
+
+		// get new mouse coordinates based on render size, and actual screen size
+		int renderW = 0;
+		int renderHDummy = 0;
+		SDL_GetRendererOutputSize(gRenderer,&renderW,&renderHDummy);
+		int en = renderW * 0.4375;
+		int renderH = renderW - en;
+		mx = (helper.screenWidth*mx)/renderW;	// New mouse coordinates, no relation to camera
+		my = (helper.screenHeight*my)/renderH;	// New mouse coordinates, no relation to camera
+
+		while (SDL_PollEvent(&e) != 0) {
+			if (e.type == SDL_QUIT) {
+				getInputSave = false;
+				optionsResult	= Exit;
+			}
+
+			if (typing == "filename"){
+				if (e.type == SDL_KEYDOWN) {
+					if (e.key.keysym.sym == SDLK_BACKSPACE&& inputDirectory.length() > 0) {
+						inputDirectory.pop_back();
+					}
+					else if (e.key.keysym.sym== SDLK_c&& SDL_GetModState() & KMOD_CTRL) {
+						SDL_SetClipboardText(inputDirectory.c_str());
+					}
+					else if (e.key.keysym.sym== SDLK_v&& SDL_GetModState() & KMOD_CTRL) {
+						inputDirectory = SDL_GetClipboardText();
+					}
+				}
+				else if (e.type == SDL_TEXTINPUT) {
+					if (!((e.text.text[0] == 'c' || e.text.text[0] == 'C')&& (e.text.text[0] == 'v' || e.text.text[0] == 'V')&& SDL_GetModState() & KMOD_CTRL)) {
+						inputDirectory += e.text.text;
+					}
+				}
+			}
+			//Handle window events
+			gWindow.handleEvent(gRenderer, e);
+
+			//If Key Pressed
+			if (e.type == SDL_KEYDOWN && e.key.repeat == 0) {
+				switch (e.key.keysym.sym) {
+				case SDLK_ESCAPE:
+					getInputSave = false;			//quit current loop
+					break;
+				case SDLK_RETURN:
+					std::stringstream defaultDir;
+					defaultDir << "resource/data/maps/";
+					///////////////////////////////////////////////////////////////////////////////
+					///////////////////////////////////////////////////////////////////////////////
+					//----------------------------- Save Spawn Point ----------------------------//
+					//Save # of Blocks
+					std::ofstream spawnPointFile;
+					std::stringstream PathDir;
+					// Set directory to save
+					PathDir << defaultDir.str().c_str();
+					// Set file name and extension
+					PathDir << inputDirectory.c_str() << "spawn.mp";
+					// Open File
+					spawnPointFile.open(PathDir.str().c_str());
+					// Store data given from Editor to store in File
+					spawnPointFile << SpawnCoordinatesData;
+					// Close
+					spawnPointFile.close();
+					//----------------------------- Save Spawn Point ----------------------------//
+					///////////////////////////////////////////////////////////////////////////////
+					///////////////////////////////////////////////////////////////////////////////
+					///////////////////////////////////////////////////////////////////////////////
+					///////////////////////////////////////////////////////////////////////////////
+					//------------------------------ Save Tile Data -----------------------------//
+					//Save # of Blocks
+					std::ofstream newTileFile;
+					PathDir.str(std::string());
+					// Set directory to save
+					PathDir << defaultDir.str().c_str();
+					// Set file name and extension
+					PathDir << inputDirectory.c_str() << "Tile.mp";
+					// Open File
+					newTileFile.open(PathDir.str().c_str());
+					// Store data given from Editor to store in File
+					newTileFile << TileSaveData;
+					// Close
+					newTileFile.close();
+					//------------------------------ Save Tile Data -----------------------------//
+					///////////////////////////////////////////////////////////////////////////////
+					///////////////////////////////////////////////////////////////////////////////
+
+					///////////////////////////////////////////////////////////////////////////////
+					///////////////////////////////////////////////////////////////////////////////
+					//------------------------------ Save Pirate Data ---------------------------//
+					//Save # of Blocks
+					std::ofstream newPirateFile;
+					PathDir.str(std::string());
+					// Set directory to save
+					PathDir << defaultDir.str().c_str();
+					// Set file name and extension
+					PathDir << inputDirectory.c_str() << "Pirate.mp";
+					// Open File
+					newPirateFile.open(PathDir.str().c_str());
+					// Store data given from Editor to store in File
+					newPirateFile << PirateSaveData;
+					// Close
+					newPirateFile.close();
+					//------------------------------ Save Pirate Data ---------------------------//
+					///////////////////////////////////////////////////////////////////////////////
+					///////////////////////////////////////////////////////////////////////////////
+					getInputSave = false;
+				}
+			}
+
+			//Left mouse click
+			if (e.type == SDL_MOUSEBUTTONUP) {
+				if (e.button.button == SDL_BUTTON_LEFT) {
+					//
+				}
+				if ( helper.checkCollision(mx, my, 1, 1, customRect.x,customRect.y, customRect.w, customRect.h)  ){
+					if (typing != "filename"){
+						typingAnim = 30;
+						typing = "filename";
+					}
+				} else{
+					typingAnim = 0;
+					typing = "nothing";
+				}
+			}
+		}
+
+		//Typing timer animation
+		if (typing == "filename"){
+			typingAnim += 1;
+			if (typingAnim >= 0 && typingAnim < 60) {
+				slash = "_";
+			}
+			if (typingAnim >= 60 && typingAnim <= 120) {
+				slash = " ";
+			}
+			if (typingAnim > 120) {
+				typingAnim = 0;
+			}
+		}
+		//Add the slash animation only when the player is typing the file name
+		std::stringstream tempSS;
+		if (typing == "filename") {
+			tempSS << inputDirectory.c_str() << slash;
+		} else {
+			tempSS << inputDirectory.c_str();
+		}
+
+		//Clear screen for render
+		SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 100);
+		SDL_RenderClear(gRenderer);
+
+			//Render text tip
+			gText.loadFromRenderedText(gRenderer, "Enter level directory (ending with a '/'):", {255,255,255}, gFont26);
+			int newWidth = gText.getWidth()/2;
+			int newHeight = gText.getHeight()/2;
+			gText.render(gRenderer, 5, 5, newWidth, newHeight);
+
+			//Render text input
+			gText.loadFromRenderedText(gRenderer, tempSS.str().c_str(), {0,255,0}, gFont26);
+			customRect.x = 10;
+			customRect.y = 15;
+			newWidth = gText.getWidth()/2;
+			newHeight = gText.getHeight()/2;
+			gText.render(gRenderer, customRect.x+4, customRect.y +newHeight - 2, newWidth, newHeight);
+			customRect.w = newWidth+8;
+			customRect.h = newHeight * 2;
+			if ( helper.checkCollision(mx, my, 1, 1, customRect.x,customRect.y, customRect.w, customRect.h)  ){
+				SDL_SetRenderDrawColor(gRenderer, 0, 255, 0, 255);
+				SDL_RenderDrawRect(gRenderer, &customRect);
+			}else{
+				SDL_SetRenderDrawColor(gRenderer, 255, 255, 255, 255);
+				SDL_RenderDrawRect(gRenderer, &customRect);
+			}
+
+		//Update screen
+		SDL_RenderPresent(gRenderer);
+
+		// fps
+		helper.frame++;
+		if((helper.cap == true ) && (helper.fps.get_ticks() < 1000 / helper.FRAMES_PER_SECOND ))
+			SDL_Delay((1000 / helper.FRAMES_PER_SECOND ) - helper.fps.get_ticks());
 	}
-	return collide;
+
+	// Bound mouse to window
+	SDL_SetRelativeMouseMode(SDL_TRUE);
+
+	// Hide mouse
+	SDL_ShowCursor(false);
+}
+
+std::string Options::GetInput(LWindow &gWindow, SDL_Renderer *gRenderer, bool &mainLoop, std::string hint)
+{
+	// Set to False so Player can see their mouse
+	SDL_SetRelativeMouseMode(SDL_FALSE);
+
+	// Show cursor
+	SDL_ShowCursor(true);
+
+	// Loop bool
+	bool getInputSave = true;
+
+	// Store hint hear to give the Editor an idea of what they are typing
+	std::string textField = "<keysRequired> <LevelWidth> <LevelHeight>";
+
+	// What you are currently typing
+	std::string typing = "nothing";
+	int typingAnim = 0;
+	std::string slash = "";
+
+	//Start getting input from user
+	SDL_StartTextInput();
+
+	//Mouse properties
+	int mx, my;
+
+	//input text box
+	SDL_Rect customRect = {0,0,0,0};
+	SDL_Event e;
+
+	while (getInputSave) {
+
+		// Start FPS cap
+		helper.fps.start();
+
+		//Mouse Position
+		SDL_GetMouseState(&mx, &my);
+
+		// get new mouse coordinates based on render size, and actual screen size
+		int renderW = 0;
+		int renderHDummy = 0;
+		SDL_GetRendererOutputSize(gRenderer,&renderW,&renderHDummy);
+		int en = renderW * 0.4375;
+		int renderH = renderW - en;
+		mx = (helper.screenWidth*mx)/renderW;	// New mouse coordinates, no relation to camera
+		my = (helper.screenHeight*my)/renderH;	// New mouse coordinates, no relation to camera
+
+		while (SDL_PollEvent(&e) != 0) {
+			if (e.type == SDL_QUIT) {
+				getInputSave = false;
+				optionsResult	= Exit;
+			}
+
+			if (typing == "inputBox"){
+				if (e.type == SDL_KEYDOWN) {
+					if (e.key.keysym.sym == SDLK_BACKSPACE&& textField.length() > 0) {
+						textField.pop_back();
+					}
+					else if (e.key.keysym.sym== SDLK_c&& SDL_GetModState() & KMOD_CTRL) {
+						SDL_SetClipboardText(textField.c_str());
+					}
+					else if (e.key.keysym.sym== SDLK_v&& SDL_GetModState() & KMOD_CTRL) {
+						textField = SDL_GetClipboardText();
+					}
+				}
+				else if (e.type == SDL_TEXTINPUT) {
+					if (!((e.text.text[0] == 'c' || e.text.text[0] == 'C')&& (e.text.text[0] == 'v' || e.text.text[0] == 'V')&& SDL_GetModState() & KMOD_CTRL)) {
+						textField += e.text.text;
+					}
+				}
+			}
+			//Handle window events
+			gWindow.handleEvent(gRenderer, e);
+
+			//If Key Pressed
+			if (e.type == SDL_KEYDOWN && e.key.repeat == 0) {
+				switch (e.key.keysym.sym) {
+				case SDLK_ESCAPE:
+					getInputSave = false;			//quit current loop
+					break;
+				case SDLK_RETURN:
+					getInputSave = false;
+				}
+			}
+
+			//Left mouse click
+			if (e.type == SDL_MOUSEBUTTONUP) {
+				if (e.button.button == SDL_BUTTON_LEFT) {
+					//
+				}
+				if ( helper.checkCollision(mx, my, 1, 1, customRect.x,customRect.y, customRect.w, customRect.h)  ){
+					if (typing != "inputBox"){
+						typingAnim = 30;
+						typing = "inputBox";
+					}
+				} else{
+					typingAnim = 0;
+					typing = "nothing";
+				}
+			}
+		}
+
+		//Typing timer animation
+		if (typing == "inputBox"){
+			typingAnim += 1;
+			if (typingAnim >= 0 && typingAnim < 60) {
+				slash = "_";
+			}
+			if (typingAnim >= 60 && typingAnim <= 120) {
+				slash = " ";
+			}
+			if (typingAnim > 120) {
+				typingAnim = 0;
+			}
+		}
+		//Add the slash animation only when the player is typing the file name
+		std::stringstream tempSS;
+		if (typing == "inputBox") {
+			tempSS << textField.c_str() << slash;
+		} else {
+			tempSS << textField.c_str();
+		}
+
+		//Clear screen for render
+		SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 100);
+		SDL_RenderClear(gRenderer);
+
+			//Render text tip
+			gText.loadFromRenderedText(gRenderer, hint.c_str(), {255,255,255}, gFont);
+			gText.render(gRenderer, 5, 5,gText.getWidth(), gText.getHeight());
+
+			//Render text input
+			gText.loadFromRenderedText(gRenderer, tempSS.str().c_str(), {0,255,0}, gFont26);
+			customRect.x = 10;
+			customRect.y = 80;
+
+			// Render text
+			gText.render(gRenderer, customRect.x+4, customRect.y,gText.getWidth(), gText.getHeight());
+
+			// Check collision of input rectangle if user if mouse is inside it
+			customRect.w = gText.getWidth()+8;
+			customRect.h = gText.getHeight();
+			if ( helper.checkCollision(mx, my, 1, 1, customRect.x,customRect.y, customRect.w, customRect.h)  ){
+				SDL_SetRenderDrawColor(gRenderer, 0, 255, 0, 255);
+				SDL_RenderDrawRect(gRenderer, &customRect);
+			}else{
+				SDL_SetRenderDrawColor(gRenderer, 255, 255, 255, 255);
+				SDL_RenderDrawRect(gRenderer, &customRect);
+			}
+
+		//Update screen
+		SDL_RenderPresent(gRenderer);
+
+		// fps
+		helper.frame++;
+		if((helper.cap == true ) && (helper.fps.get_ticks() < 1000 / helper.FRAMES_PER_SECOND ))
+			SDL_Delay((1000 / helper.FRAMES_PER_SECOND ) - helper.fps.get_ticks());
+	}
+
+	// Bound mouse to window
+	SDL_SetRelativeMouseMode(SDL_TRUE);
+
+	// Hide mouse
+	SDL_ShowCursor(false);
+
+	// Return input
+	return textField.c_str();
 }
 
 // Key Pressed
@@ -748,7 +1134,7 @@ void Options::OnKeyDown(SDL_Keycode sym, Players &player) {
 // Mouse Pressed
 void Options::mousePressed(Players &player) {
 	for (int i=0; i<5; i++) {
-		if (checkCollision(mx, my, 1, 1, title[i].x-3, title[i].y-3, title[i].w+3, title[i].h+3)) {
+		if (helper.checkCollision(mx, my, 1, 1, title[i].x-3, title[i].y-3, title[i].w+3, title[i].h+3)) {
 			// PauseMenu controls
 			if (type==0) {
 				// Resume Game
@@ -811,7 +1197,7 @@ void Options::mouseReleased(LWindow &gWindow) {
 
 	/* Mouse on Keep or Revert button */
 	for (int i=0; i<2; i++) {
-		if (checkCollision(mx, my, 1, 1, confirmButton[i].x, confirmButton[i].y, confirmButton[i].w, confirmButton[i].h)) {
+		if (helper.checkCollision(mx, my, 1, 1, confirmButton[i].x, confirmButton[i].y, confirmButton[i].w, confirmButton[i].h)) {
 			confirmMouse[i] = true;
 		}
 		else{
@@ -820,7 +1206,7 @@ void Options::mouseReleased(LWindow &gWindow) {
 	}
 
 	/* Apply Audio Button */
-	if (checkCollision(mx, my, 1, 1, applyButton[0].x, applyButton[0].y, applyButton[0].w, applyButton[0].h))
+	if (helper.checkCollision(mx, my, 1, 1, applyButton[0].x, applyButton[0].y, applyButton[0].w, applyButton[0].h))
 	{
 		// Apply new Bar Settings
 		/*Mix_VolumeMusic();
@@ -844,7 +1230,7 @@ void Options::mouseReleased(LWindow &gWindow) {
 	}
 
 	/* Apply Video Button */
-	if (checkCollision(mx, my, 1, 1, applyButton[1].x, applyButton[1].y, applyButton[1].w, applyButton[1].h))
+	if (helper.checkCollision(mx, my, 1, 1, applyButton[1].x, applyButton[1].y, applyButton[1].w, applyButton[1].h))
 	{
 		// Apply new Video Settings
 		gWindow.applySettings(bar[3].value, bar[4].value, bar[5].value, bar[6].value);
@@ -856,7 +1242,7 @@ void Options::mouseReleased(LWindow &gWindow) {
 	}
 
 	/* Keep Button */
-	if (checkCollision(mx, my, 1, 1, confirmButton[0].x, confirmButton[0].y, confirmButton[0].w, confirmButton[0].h))
+	if (helper.checkCollision(mx, my, 1, 1, confirmButton[0].x, confirmButton[0].y, confirmButton[0].w, confirmButton[0].h))
 	{
 		// file name .cfg
 		std::string temps;
@@ -901,7 +1287,7 @@ void Options::mouseReleased(LWindow &gWindow) {
 	}
 
 	/* Revert Button */
-	if (checkCollision(mx, my, 1, 1, confirmButton[1].x, confirmButton[1].y, confirmButton[1].w, confirmButton[1].h)) {
+	if (helper.checkCollision(mx, my, 1, 1, confirmButton[1].x, confirmButton[1].y, confirmButton[1].w, confirmButton[1].h)) {
 		// Turn off confirm prompt
 		confirm 		= false;
 		timer 			= 2552;

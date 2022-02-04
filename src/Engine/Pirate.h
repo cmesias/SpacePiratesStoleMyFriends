@@ -98,6 +98,9 @@ public:	// Main functions
 				int camx, int camy);
 	void render(SDL_Renderer* gRenderer, Pirate pirate[], int camx, int camy);
 
+	// This function will determine a Monster's spells (usually called after loading Monsters)
+	void SetStatsBasedOnType(Pirate pirate[], int i);
+
 
 public: // Editor Variables
 
@@ -124,6 +127,14 @@ public:	// Editor methods
 	void RemoveAll(Pirate pirate[]);
 
 	void EditorUpdate(Pirate pirate[], int newMx, int newMy, int mex, int mey, int camx, int camy);
+
+public: // Save functions
+
+	// Load data
+	void LoadData(Pirate pirate[], int level);
+
+	// Save data
+	std::string SaveData(Pirate pirate[]);
 };
 
 #endif /* ENGINE_PIRATE_H_ */

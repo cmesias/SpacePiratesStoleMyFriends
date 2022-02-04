@@ -26,7 +26,13 @@ public:
     //const int screenHeight = 1296;
 	const int screenWidth = 1920;
 	const int screenHeight = 1080;
+
 public:
+
+	// Check collision
+	bool checkCollision(int x, int y, int w, int h, int x2, int y2, int w2, int h2);
+
+	bool checkCollisionRect( SDL_Rect a, SDL_Rect b );
 
 	// Generate a random double number
 	double randDouble(double fMin, double fMax);
