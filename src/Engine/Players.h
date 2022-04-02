@@ -157,6 +157,8 @@ public: // Health variables
 
 	// Camera shake
 	bool playerShakeCamera;
+	bool getShakeCameraStatus();
+	void StopShakeCameraPing();
 
 	bool moving = false;
 	std::string tag;
@@ -241,8 +243,7 @@ public:	// functions
 				LWindow gWindow, SDL_Renderer* gRenderer,
 				LTexture gText, TTF_Font *gFont, SDL_Color color,
 				Mix_Chunk *sAtariBoom, Mix_Chunk* sLazer, Mix_Chunk* sGrenade,
-				Mix_Chunk* sGrenadePickup, Mix_Chunk* sPistolReload,
-				bool &playerShakeCamera);
+				Mix_Chunk* sGrenadePickup, Mix_Chunk* sPistolReload);
 
 	void render(int camx, int camy, LWindow gWindow,
 				SDL_Renderer* gRenderer, int &PARTICLES);

@@ -75,29 +75,11 @@ void Pirate::spawn(Pirate pirate[], float x, float y,
 		           float w, float h, int realw, int realh,
 				   float angle, float speed,
 				   int distanceHeadIsFromCenterOfImage,
-				   int bulletW, int bulletH) {
+				   int bulletW, int bulletH, int type) {
 	for (int i = 0; i < max; i++)
 	{
 		if (!pirate[i].alive)
 		{
-			// Determine ammo and magazine size of pirate
-			// based on type of pirate being spawn
-			if (type == 0) {
-				pirate[i].atkSpeed = 2.75;
-				pirate[i].ammo = 9;
-				pirate[i].magSize = 9;
-				pirate[i].reloadSpeed = 4.25;
-				pirate[i].reloadTimer = 0.0;
-				pirate[i].atkRange = 700;
-			}
-			if (type == 1) {
-				pirate[i].atkSpeed = 9.65;
-				pirate[i].ammo = 30;
-				pirate[i].magSize = 30;
-				pirate[i].reloadSpeed = 9.25;
-				pirate[i].reloadTimer = 0.0;
-				pirate[i].atkRange = 825;
-			}
 			pirate[i].tag 				= "enemy";
 			pirate[i].x 				= x;
 			pirate[i].y 				= y;
@@ -148,10 +130,10 @@ void Pirate::spawn(Pirate pirate[], float x, float y,
 				pirate[i].maxHealth 		= 100;
 			}
 			if (type == 1) {
-				pirate[i].atkSpeed = 9.65;
-				pirate[i].ammo = 30;
-				pirate[i].magSize = 30;
-				pirate[i].reloadSpeed = 9.25;
+				pirate[i].atkSpeed = 3.65;
+				pirate[i].ammo = 9;
+				pirate[i].magSize = 9;
+				pirate[i].reloadSpeed = 6.25;
 				pirate[i].reloadTimer = 0.0;
 				pirate[i].atkRange = 825;
 				pirate[i].health			= 2000;
@@ -434,7 +416,144 @@ void Pirate::update(Pirate pirate[], Particle particle[], Particle &p_dummy,
 					double barrelX = pirate[i].x+pirate[i].realw/2-wDifference/2 - particleW/2 + barrelW;
 					double barrelY = pirate[i].y+pirate[i].realh/2-hDifference/2 - particleH/2 + barrelH;
 
-					if (pirate[i].distance <= 500) {
+
+					// If not reloading
+					if (!pirate[i].reloading && !pirate[i].shooting) {
+
+						// If distance from player is within attack range
+						if (pirate[i].distance < pirate[i].atkRange) {
+
+							// Start shooting animation
+							pirate[i].shooting = true;
+
+							/*
+							// TODO 1-24-2022 [ ] - make this an actual variable for this class
+							float atkSped = 5.25;
+							pirate[i].timer += atkSped;
+							// TODO 1-24-2022 [ ] - create a set of actualy animation attacks with timers, and have them reload
+							if (pirate[i].timer > 60){
+								//pirate[i].vX = Cos * 11 - rand() % 8 + 5;
+								//pirate[i].vY = Sin * 11 - rand() % 8 + 5;
+								// restart shoo ttimer
+								pirate[i].timer = 0;
+								// play shoot sound effect
+								Mix_PlayChannel(3, sLazer, 0);
+								// spawn particle
+								p_dummy.spawnParticleAngle(particle, pirate[i].tag, 1,
+										barrelX, barrelY,
+										particleW, particleH,
+										pirate[i].angle, 20,
+									   5,
+									   {255, 100,100}, 1,
+									   0.0, 0.0,
+									   255, 0,
+									   100, 1,
+									   false, 0);
+							}*/
+						}
+					}
+
+					// Shooting animation
+					if (pirate[i].shooting) {
+
+						// If pirate has ammo
+						if (pirate[i].ammo > 0) {
+
+							// Increase reload timer with reload speed
+							pirate[i].atkSpeedTimer += pirate[i].atkSpeed;
+
+							// After 1 second (or every 60 frames)
+							if (pirate[i].atkSpeedTimer > 60) {
+
+								// Play gun shot SFX
+								Mix_PlayChannel(3, sLazer, 0);
+
+								// Reset timer
+								pirate[i].atkSpeedTimer = 0;
+
+								// Spawn bullet/particle
+								p_dummy.spawnParticleAngle(particle, pirate[i].tag, 0,
+										barrelX,
+										barrelY,
+										particleW, particleH,
+										pirate[i].angle, 26,
+									   5,
+									   {255, 100,100}, 1,
+									   0.0, 0.0,
+									   255, 0,
+									   100, 1,
+									   false, 0);
+								p_dummy.spawnParticleAngle(particle, pirate[i].tag, 0,
+										barrelX,
+										barrelY,
+										particleW, particleH,
+										pirate[i].angle-15, 26,
+									   5,
+									   {255, 100,100}, 1,
+									   0.0, 0.0,
+									   255, 0,
+									   100, 1,
+									   false, 0);
+								p_dummy.spawnParticleAngle(particle, pirate[i].tag, 0,
+										barrelX,
+										barrelY,
+										particleW, particleH,
+										pirate[i].angle+15, 26,
+									   5,
+									   {255, 100,100}, 1,
+									   0.0, 0.0,
+									   255, 0,
+									   100, 1,
+									   false, 0);
+
+								// Reduce ammo count
+								pirate[i].ammo -=3;
+							}
+						}
+
+						// Pirate has no more ammo
+						else {
+
+							// Stop shooting animation
+							pirate[i].shooting = false;
+
+							// Start reloading animation
+							pirate[i].reloading = true;
+						}
+					}
+
+					// Reloading animation
+					else if (pirate[i].reloading) {
+
+						// If pirate does not have a full clip yet
+						if (pirate[i].ammo < pirate[i].magSize) {
+
+							// Increase reload timer with reload speed
+							pirate[i].reloadTimer += pirate[i].reloadSpeed;
+
+							// After 1 second (or every 60 frames)
+							if (pirate[i].reloadTimer > 60) {
+
+								// Play reload SFX
+								Mix_PlayChannel(7, sPistolReload, 0);
+
+								// Reset timer
+								pirate[i].reloadTimer = 0;
+
+								// Increase ammo count for pirate
+								pirate[i].ammo++;
+							}
+						}
+
+						// Pirate has a full clip, stop reload animation
+						else {
+							pirate[i].reloading = false;
+						}
+					}
+					//-----------------------------------------------------------------------------------//
+					//-----------------------------------------------------------------------------------//
+					//--------------------------------- DEPRACATED/OLD ----------------------------------//
+					/*if (pirate[i].distance <= 500) {
 						if (!pirate[i].attacking) {
 							pirate[i].attackLength = 180;
 							pirate[i].attacking = true;
@@ -468,30 +587,11 @@ void Pirate::update(Pirate pirate[], Particle particle[], Particle &p_dummy,
 								   255, 0,
 								   100, 1,
 								   false, 0);
-							p_dummy.spawnParticleAngle(particle, pirate[i].tag, 0,
-									barrelX,
-									barrelY,
-									particleW, particleH,
-									pirate[i].angle-15, 9,
-								   5,
-								   {255, 100,100}, 1,
-								   0.0, 0.0,
-								   255, 0,
-								   100, 1,
-								   false, 0);
-							p_dummy.spawnParticleAngle(particle, pirate[i].tag, 0,
-									barrelX,
-									barrelY,
-									particleW, particleH,
-									pirate[i].angle+15, 9,
-								   5,
-								   {255, 100,100}, 1,
-								   0.0, 0.0,
-								   255, 0,
-								   100, 1,
-								   false, 0);
 						}
-					}
+					}*/
+					//--------------------------------- DEPRACATED/OLD ----------------------------------//
+					//-----------------------------------------------------------------------------------//
+					//-----------------------------------------------------------------------------------//
 				}
 
 			//-----------------------------------------------------------------------------------//

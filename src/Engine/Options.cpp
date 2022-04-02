@@ -713,7 +713,7 @@ void Options::SaveLevel(LWindow &gWindow, SDL_Renderer *gRenderer, bool &mainLoo
 				optionsResult	= Exit;
 			}
 
-			if (typing == "filename"){
+			if (typing == "   "){
 				if (e.type == SDL_KEYDOWN) {
 					if (e.key.keysym.sym == SDLK_BACKSPACE&& inputDirectory.length() > 0) {
 						inputDirectory.pop_back();
@@ -1040,25 +1040,6 @@ std::string Options::GetInput(LWindow &gWindow, SDL_Renderer *gRenderer, bool &m
 		if((helper.cap == true ) && (helper.fps.get_ticks() < 1000 / helper.FRAMES_PER_SECOND ))
 			SDL_Delay((1000 / helper.FRAMES_PER_SECOND ) - helper.fps.get_ticks());
 	}
-	return textField.c_str();
-}
-
-// Collision check
-bool Options::checkCollision(int x, int y, int w, int h, int x2, int y2, int w2, int h2) {
-	bool collide;
-	if (x+w > x2 && x < x2 + w2 && y+h > y2 && y < y2 + h2) {
-		collide = true;
-	}else{
-		collide = false;
-	}
-
-	// Bound mouse to window
-	SDL_SetRelativeMouseMode(SDL_TRUE);
-
-	// Hide mouse
-	SDL_ShowCursor(false);
-
-	// Return input
 	return textField.c_str();
 }
 

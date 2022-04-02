@@ -496,7 +496,7 @@ void Players::fire(Particle particle[], Particle &p_dummy, int mx, int my,
 							   false, 0);
 
 						// Shake camera
-						playerShakeCamera = true;
+						this->playerShakeCamera = true;
 
 						// Increase bloom amount every shot
 						if (recoilBloomAmount < recoilBloomAmountMax) {
@@ -803,8 +803,7 @@ void Players::update(Map &map,
 					LWindow gWindow, SDL_Renderer* gRenderer,
 					LTexture gText, TTF_Font *gFont13, SDL_Color color,
 					Mix_Chunk *sAtariBoom, Mix_Chunk* sLazer, Mix_Chunk* sGrenade,
-					Mix_Chunk* sGrenadePickup, Mix_Chunk* sPistolReload,
-					bool &playerShakeCamera)
+					Mix_Chunk* sGrenadePickup, Mix_Chunk* sPistolReload)
 {
 	// Reset upon leaving pause menu
 	if (returned){
@@ -824,9 +823,6 @@ void Players::update(Map &map,
 
 		// Player shoot
 		fire(particle, p_dummy, mx+camx, my+camy, sLazer, sGrenade, sGrenadePickup, sPistolReload);
-
-		// If Player pinged to shake the camera
-		playerShakeCamera = this->playerShakeCamera;
 
 		// Player shield
 		if (shield){
@@ -1160,7 +1156,7 @@ void Players::RenderUI(SDL_Renderer *gRenderer,
 	}// If player alive
 
 	// If deathscreen
-	if (deathScreen) {
+	//if (deathScreen) {
 
 		// Continue YES or NO Screen
 		if (deathScreen)
@@ -1219,40 +1215,44 @@ void Players::RenderUI(SDL_Renderer *gRenderer,
 			gText.render(gRenderer, continueButton[2].x+continueButton[2].w/2-gText.getWidth()/2,
 									 continueButton[2].y+continueButton[2].h/2-gText.getHeight()/2,
 									 gText.getWidth(), gText.getHeight());
-		}
 
-		// Render High Score text
-		for (int i=0; i<10; i++){
-			std::stringstream tempString(highList[i].c_str());
-			std::string line;
-			while (getline(tempString, line)) {
-				std::stringstream iss(line);
-				std::string temps[2];
-				iss >> temps[0] >> temps[1];
 
-				// Show Player where they are ranked
-				if (indexSaved==i){
-					gText.loadFromRenderedText(gRenderer, temps[0].c_str(), {244,144,20}, gFont13);
-					gText.setAlpha(255-i*10);
-					gText.render(gRenderer, continueButton[0].x+position,
-							continueButton[0].y+continueButton[0].h+20+i*14,
-							gText.getWidth(), gText.getHeight());
-				}else{
-					gText.loadFromRenderedText(gRenderer, temps[0].c_str(), color, gFont13);
-					gText.setAlpha(255-i*10);
-					gText.render(gRenderer, continueButton[0].x+position,
-							continueButton[0].y+continueButton[0].h+20+i*14,
-							gText.getWidth(), gText.getHeight());
+			if (!alive) {
+
+				// Render High Score text
+				for (int i=0; i<10; i++){
+					std::stringstream tempString(highList[i].c_str());
+					std::string line;
+					while (getline(tempString, line)) {
+						std::stringstream iss(line);
+						std::string temps[2];
+						iss >> temps[0] >> temps[1];
+
+						// Show Player where they are ranked
+						if (indexSaved==i){
+							gText.loadFromRenderedText(gRenderer, temps[0].c_str(), {244,144,20}, gFont13);
+							gText.setAlpha(255-i*10);
+							gText.render(gRenderer, continueButton[0].x+position,
+									continueButton[0].y+continueButton[0].h+20+i*14,
+									gText.getWidth(), gText.getHeight());
+						}else{
+							gText.loadFromRenderedText(gRenderer, temps[0].c_str(), color, gFont13);
+							gText.setAlpha(255-i*10);
+							gText.render(gRenderer, continueButton[0].x+position,
+									continueButton[0].y+continueButton[0].h+20+i*14,
+									gText.getWidth(), gText.getHeight());
+						}
+
+						gText.loadFromRenderedText(gRenderer, temps[1].c_str(), color, gFont13);
+						gText.setAlpha(255-i*10);
+						gText.render(gRenderer, position2,
+								continueButton[1].y+continueButton[1].h+20+i*14,
+								gText.getWidth(), gText.getHeight());
+					}
 				}
-
-				gText.loadFromRenderedText(gRenderer, temps[1].c_str(), color, gFont13);
-				gText.setAlpha(255-i*10);
-				gText.render(gRenderer, position2,
-						continueButton[1].y+continueButton[1].h+20+i*14,
-						gText.getWidth(), gText.getHeight());
 			}
 		}
-	} // end death screen check
+	//} // end death screen check
 
 	// Render highscore, score and wave text, and enemies left text
 	std::stringstream tempsi;
@@ -1326,6 +1326,14 @@ void Players::RenderUI(SDL_Renderer *gRenderer,
 	tempss << "Axis: " << 5 << " -        " << SDL_JoystickGetAxis(joy, 5);
 	gText.loadFromRenderedText(tempss.str().c_str(), {255, 255, 255, 255}, gFont13, gRenderer);
 	gText.render(gRenderer, 60, 80, gText.getWidth(), gText.getHeight());*/
+}
+
+bool Players::getShakeCameraStatus() {
+	return playerShakeCamera;
+}
+
+void Players::StopShakeCameraPing() {
+	playerShakeCamera = false;
 }
 
 

@@ -63,7 +63,10 @@
  *
  *
  *
+ *TODO [ ] (4-2-2022) - Add health drops for enemies somtimes, get code and sprite from Smol Dungeon
  */
+
+
 
 
 void PlayGame::ShakeCamera()
@@ -122,7 +125,8 @@ void PlayGame::Init() {
 	spaw.init(spawner);
 
 	// Player class
-	player.reset(0+tl.levelWidth/2-player.w/2, 0+tl.levelHeight/2-player.h/2, "Player1", false);
+	player.reset(map.x+map.w/2-player.w/2, map.y+map.h/2-player.h/2, "Player1", false);
+	//player.reset(0+tl.levelWidth/2-player.w/2, 0+tl.levelHeight/2-player.h/2, "Player1", false);
 
 	// Player load score
 	player.loadScore();
@@ -295,7 +299,7 @@ void PlayGame::Show(LWindow &gWindow, SDL_Renderer *gRenderer, PlayGame::Result 
 	//Mix_FadeInMusic(sAmbientMusic, -1, 0);
 
 	// Load resources
-	LoadLevel(part, particles);
+	//LoadLevel(part, particles);
 
 	// Hides mouse, and traps mouse in game so it doesn't go out
 	SDL_SetRelativeMouseMode(SDL_TRUE);
@@ -480,7 +484,7 @@ void PlayGame::Show(LWindow &gWindow, SDL_Renderer *gRenderer, PlayGame::Result 
 						break;
 					case SDLK_s:
 						if (editor && !shift) {
-							// Editor visual message
+							/*// Editor visual message
 							std::stringstream tempss;
 							tempss << "Saving level data...";
 							tex.spawn(text, 0, 0, 0.0, 0.0, 255, tempss.str().c_str());
@@ -498,13 +502,14 @@ void PlayGame::Show(LWindow &gWindow, SDL_Renderer *gRenderer, PlayGame::Result 
 							//CollisionTileSaveData << tc.saveTiles(tilec);
 
 							// Go to saving interface
-							SaveLevel(gWindow, gRenderer, quit,
-									  SpawnCoordinatesData.str().c_str(),
-									  TileSaveData.str().c_str());
+							//SaveLevel(gWindow, gRenderer, quit,
+							//		  SpawnCoordinatesData.str().c_str(),
+							//		  TileSaveData.str().c_str());
+
 							// Editor visual message
-							tempss.str(std::string());
-							tempss << "Finished saving.";
-							tex.spawn(text, 0, 0, 0.0, 0.0, 255, tempss.str().c_str());
+							//tempss.str(std::string());
+							///tempss << "Finished saving.";
+							//tex.spawn(text, 0, 0, 0.0, 0.0, 255, tempss.str().c_str());*/
 						}
 						break;
 					}
@@ -660,11 +665,11 @@ void PlayGame::Update(LWindow &gWindow, SDL_Renderer *gRenderer) {
 					  gWindow, gRenderer,
 					  gText, gFont26, {255,255,255},
 					  sAtariBoom, sLazer, sGrenade,
-					  sGrenadePickup, sPistolReload,
-					  playerShakeCamera);
+					  sGrenadePickup, sPistolReload);
 
 		// Shake camera if player wants to, but right not not used
-		if (playerShakeCamera) {
+		if (player.getShakeCameraStatus()) {
+			player.StopShakeCameraPing();
 			ShakeCamera();
 		}
 
@@ -906,7 +911,7 @@ void PlayGame::RenderFG(SDL_Renderer *gRenderer, LWindow &gWindow) {
 	// render map
 	for (int j=0; j<6; j++) {
 		for (int i=0; i<6; i++) {
-			//gBG.render(gRenderer, 0+i*837-camx, 0+j*837-camy, 837, 837);
+			gBG.render(gRenderer, 0+i*837-camx, 0+j*837-camy, 837, 837);
 		}
 	}
 }
@@ -1040,8 +1045,8 @@ void PlayGame::RenderDebug(SDL_Renderer *gRenderer)
 				gCircle.setColor(255,255,255);
 				gCircle.setAlpha(180);
 				gCircle.render(gRenderer,
-						pirate[i].getCenterX(pirate, i)-camx,
-						pirate[i].getCenterY(pirate, i)-camy,
+						pirate[i].xCenter-camx,
+						pirate[i].yCenter-camy,
 						pirate[i].w, pirate[i].h);
 
 				// Render angle Text
@@ -1790,22 +1795,9 @@ void PlayGame::checkCollisionGrenadePlayer() {
 					// Particle death
 					particles[i].time += particles[i].deathTimerSpeed;
 
-					// Particle map collision
-					if (particles[i].x+particles[i].w < 0) {
-						particles[i].x = 0+tl.levelWidth-particles[i].w;
-					}
-					if (particles[i].x > 0+tl.levelWidth) {
-						particles[i].x = 0-particles[i].w;
-					}
-					if (particles[i].y+particles[i].h < 0) {
-						particles[i].y = 0+tl.levelHeight-particles[i].h;
-					}
-					if (particles[i].y > 0+tl.levelHeight) {
-						particles[i].y = 0-particles[i].h;
-					}
-
 					// Grenade has a smoke Particle effect coming out of it
 					particles[i].timeri++;
+
 					/* Making this '30' frames will enable the Player to
 					 * watch 3 visual 'ticks' (particle sparks coming from the grenade
 					 * that will explode momentarily after the 3 tick)
@@ -1874,10 +1866,10 @@ void PlayGame::checkCollisionGrenadePlayer() {
 							int rands = rand() % 9 + 2;
 							float newX = particles[i].x+particles[i].w/2;
 							float newY = particles[i].y+particles[i].h/2;
-							/*int r = rand() % 255;
-							int g = rand() % 255;
-							int b = rand() % 255;
-							SDL_Color color = {r, g, b};*/
+							//int r = rand() % 255;
+							//int g = rand() % 255;
+							//int b = rand() % 255;
+							//SDL_Color color = {r, g, b};
 							part.spawnParticleAngle(particles, "none", 2,
 												newX-rands/2,
 												newY-rands/2,
@@ -1912,7 +1904,7 @@ void PlayGame::checkCollisionGrenadePlayer() {
 						particles[i].alive = false;
 						part.count--;
 					}
-				}
+				}	// end check part type == 3
 			}
 		}
 }
@@ -1999,6 +1991,11 @@ void PlayGame::spawnAsteroidsNow2()
 			int randx 		= rand() % map.w;
 			int randy 		= rand() % map.h;
 			spaw.spawn(spawner, 0+randx, 0+randy, 128, 128);
+
+
+
+
+
 			/*pira.spawn(pirate, map.x+randx, map.y+randy,
 					  80, 80, 128, 128,
 					  0.0, randDouble(3.6, 4.1),
@@ -2228,7 +2225,13 @@ void PlayGame::editorOnKeyDown( SDL_Keycode sym, Particle &part, Particle partic
 		}
 		break;
 	case SDLK_q:								// Change place type (i.e. Tiles or Collision Tiles)
-		place_type++;
+		if (shift) {
+			place_type--;
+			if (place_type < 0) { place_type = 3;}
+		}else{
+			place_type++;
+			if (place_type > 3) { place_type = 0;}
+		}
 		break;
 	case SDLK_TAB:								// Toggle hide other layers
 		tl.hideOtherLayers = (!tl.hideOtherLayers);
@@ -2675,7 +2678,7 @@ void PlayGame::LoadLevel(Particle &part, Particle particles[]) {
 	pira.LoadData(pirate, playerStageLevel);
 
 	// Load level spawn point
-	loadSpawnPoint();
+	//loadSpawnPoint();
 
 	// Load Collision Tiles
 	//tc.loadTiles(tilec, level);

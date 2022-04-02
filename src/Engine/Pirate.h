@@ -92,7 +92,7 @@ public:	// Main functions
 	void spawn(Pirate pirate[], float x, float y,
 			   float w, float h, int imageW, int imageH,
 			   float angle, float speed,
-			   int distanceHeadIsFromCenterOfImage, int bulletW, int bulletH);
+			   int distanceHeadIsFromCenterOfImage, int bulletW, int bulletH, int id = 0);
 	void update(Pirate pirate[], Particle particle[], Particle &p_dummy,
 				Map &map, Players &player,
 				Mix_Chunk* sLazer, Mix_Chunk* sPistolReload,

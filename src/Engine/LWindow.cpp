@@ -35,7 +35,7 @@ bool LWindow::create(std::string newName, int RESOLUTION, int ANTI_ALIS, int VSY
 	int Width = 0;
 	int Height = 0;
 
-	Uint32 flags = SDL_WINDOW_SHOWN;
+	Uint32 flags = SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE;
 
 	// Resolution
 	if (RESOLUTION==1) {

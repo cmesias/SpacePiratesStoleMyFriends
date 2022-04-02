@@ -146,6 +146,15 @@ void Spawner::update(Spawner spawner[],
 							  0.0, randDouble(3.6, 4.4),
 							  40, 57, 17);
 
+					// 10% chance to spawn a Boss pirate
+					int randNum = rand() % 100;
+					if (randNum < 10) {
+						pira.spawn(pirate, mx+camx-(80*1.5)/2, my+camy-(80*1.5)/2,
+								  80*1.5, 80*1.5, 160*1.5, 160*1.5,
+								  0.0, randDouble(2, 2),
+								  40, 57, 17, 1);
+					}
+
 		            // Remove spawner
 					spawner[i].alive = false;
 					count--;

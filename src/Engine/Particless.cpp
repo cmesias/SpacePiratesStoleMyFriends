@@ -367,24 +367,6 @@ void Particle::updateBulletParticles(Particle particle[], int mapX, int mapY, in
 					particle[i].y = mapY-particle[i].h;
 				}*/
 
-				// Particle map collision, destroys on edge of map
-				if (particle[i].x+particle[i].w < mapX) {
-					particle[i].alive = false;
-					count--;
-				}
-				if (particle[i].x > mapX+mapW) {
-					particle[i].alive = false;
-					count--;
-				}
-				if (particle[i].y+particle[i].h < mapY) {
-					particle[i].alive = false;
-					count--;
-				}
-				if (particle[i].y > mapY+mapH) {
-					particle[i].alive = false;
-					count--;
-				}
-
 				// Particle death
 				if (particle[i].time > particle[i].deathTimer) {
 					particle[i].alive = false;
@@ -421,24 +403,6 @@ void Particle::updateBulletParticles(Particle particle[], int mapX, int mapY, in
 				if (particle[i].y > mapY+mapH) {
 					particle[i].y = mapY-particle[i].h;
 				}*/
-
-				// Particle map collision, destroys on edge of map
-				if (particle[i].x+particle[i].w < mapX) {
-					particle[i].alive = false;
-					count--;
-				}
-				if (particle[i].x > mapX+mapW) {
-					particle[i].alive = false;
-					count--;
-				}
-				if (particle[i].y+particle[i].h < mapY) {
-					particle[i].alive = false;
-					count--;
-				}
-				if (particle[i].y > mapY+mapH) {
-					particle[i].alive = false;
-					count--;
-				}
 
 				// Particle death
 				if (particle[i].time > particle[i].deathTimer) {
@@ -525,6 +489,25 @@ void Particle::updateBulletParticles(Particle particle[], int mapX, int mapY, in
 					count--;
 				}
 			}*/
+
+
+			// Particle map collision, destroys on edge of map
+			if (particle[i].x+particle[i].w < mapX) {
+				particle[i].alive = false;
+				count--;
+			}
+			if (particle[i].x > mapX+mapW) {
+				particle[i].alive = false;
+				count--;
+			}
+			if (particle[i].y+particle[i].h < mapY) {
+				particle[i].alive = false;
+				count--;
+			}
+			if (particle[i].y > mapY+mapH) {
+				particle[i].alive = false;
+				count--;
+			}
 		}
 	}
 }
