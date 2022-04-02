@@ -486,6 +486,9 @@ void Players::fire(Particle particle[], Particle &p_dummy, int mx, int my,
 							   100, 2,
 							   false, 0);
 
+						// Shake camera
+						playerShakeCamera = true;
+
 						// Increase bloom amount every shot
 						if (recoilBloomAmount < recoilBloomAmountMax) {
 							recoilBloomAmount += 1;
@@ -791,7 +794,8 @@ void Players::update(Map &map,
 					LWindow gWindow, SDL_Renderer* gRenderer,
 					LTexture gText, TTF_Font *gFont13, SDL_Color color,
 					Mix_Chunk *sAtariBoom, Mix_Chunk* sLazer, Mix_Chunk* sGrenade,
-					Mix_Chunk* sGrenadePickup, Mix_Chunk* sPistolReload)
+					Mix_Chunk* sGrenadePickup, Mix_Chunk* sPistolReload,
+					bool &playerShakeCamera)
 {
 	// Reset upon leaving pause menu
 	if (returned){
@@ -811,6 +815,9 @@ void Players::update(Map &map,
 
 		// Player shoot
 		fire(particle, p_dummy, mx+camx, my+camy, sLazer, sGrenade, sGrenadePickup, sPistolReload);
+
+		// If Player pinged to shake the camera
+		playerShakeCamera = this->playerShakeCamera;
 
 		// Player shield
 		if (shield){

@@ -158,6 +158,9 @@ public: // Health variables
 	float rustleDirX = 1;
 	float rustleDirY = 1;
 
+	// Camera shake
+	bool playerShakeCamera;
+
 	bool moving = false;
 	std::string tag;
 
@@ -236,7 +239,8 @@ public:	// functions
 				LWindow gWindow, SDL_Renderer* gRenderer,
 				LTexture gText, TTF_Font *gFont, SDL_Color color,
 				Mix_Chunk *sAtariBoom, Mix_Chunk* sLazer, Mix_Chunk* sGrenade,
-				Mix_Chunk* sGrenadePickup, Mix_Chunk* sPistolReload);
+				Mix_Chunk* sGrenadePickup, Mix_Chunk* sPistolReload,
+				bool &playerShakeCamera);
 
 	void render(int camx, int camy, LWindow gWindow,
 				SDL_Renderer* gRenderer, int &PARTICLES);

@@ -143,11 +143,27 @@ public:	// Tile and Tilebar variables
 	// Player door and spawn point textures
 	LTexture gDoor;				//
 
-public:							// camera
+public:			// Camera variables
 
-    int camx;
-    int camy;
+    float camx;
+    float camy;
     bool camlock;
+
+    // Camera Shake
+
+	/* This will bring the player
+	 * to life. At least, that's what
+	 * it'll look like. This will rustle
+	 * the player's armor as they move
+	 */
+	float rustleW;
+	float rustleSpe;
+	float rustleDirX;
+    bool camshake;
+
+	void ShakeCamera();
+
+	bool playerShakeCamera;
 
 public:	// Variables
 

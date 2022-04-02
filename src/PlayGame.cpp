@@ -39,6 +39,18 @@
 
 // TODO 1-28-2022 [ ] - add tiles to init and update
 
+
+void PlayGame::ShakeCamera()
+{
+	playerShakeCamera = false;
+
+	camshake = true;
+	rustleW = 5;
+	rustleSpe = 1;
+
+	rustleDirX = rand() % 3 + 1;
+}
+
 void PlayGame::Init() {
 	// Upon entry
     debug 				= true;
@@ -49,8 +61,15 @@ void PlayGame::Init() {
 	shift 				= false;
 	frame 				= 0;
     cap 				= true;
+
+    // Camera
 	camx 				= 0;
 	camy 				= 0;
+	rustleW				= 0.0;
+	rustleSpe			= 1;
+	rustleDirX			= 1;
+	camshake			= false;
+	playerShakeCamera	= false;
 
 	// Initialize
 
@@ -569,7 +588,13 @@ void PlayGame::Update(LWindow &gWindow, SDL_Renderer *gRenderer) {
 					  gWindow, gRenderer,
 					  gText, gFont26, {255,255,255},
 					  sAtariBoom, sLazer, sGrenade,
-					  sGrenadePickup, sPistolReload);
+					  sGrenadePickup, sPistolReload,
+					  playerShakeCamera);
+
+		// Shake camera if player wants to, but right not not used
+		if (playerShakeCamera) {
+			ShakeCamera();
+		}
 
 		// If Player is alive
 		if (player.alive) {
@@ -682,18 +707,96 @@ void PlayGame::Update(LWindow &gWindow, SDL_Renderer *gRenderer) {
 		}
 
 		// Camera bounds
-		/*if( camx < 0 ){
-			camx = 0;
+		if (!editor) {
+			if( camx < 0 ){
+				camx = 0;
+			}
+			if( camy < 0 ){
+				camy = 0;
+			}
+			if( camx+screenWidth > map.w ){
+				camx = map.w-screenWidth;
+			}
+			if( camy+screenHeight > map.h ){
+				camy = map.h-screenHeight ;
+			}
 		}
-		if( camy < 0 ){
-			camy = 0;
+
+		// Handle camera shake
+		if (camshake) {
+
+			// Shake going right
+			if (rustleDirX == 1) {
+
+				// Shake camera
+				camx += rustleW;
+
+				// Next direction to shake
+				rustleDirX = 2;
+
+				// Lower rustle of camera every frame
+				if (rustleW > 0) {
+					rustleW -= rustleSpe;
+				} else {
+					// Stop shaking
+					camshake = false;
+				}
+			}
+
+			// Shake going down
+			else if (rustleDirX == 2) {
+
+				// Shake camera
+				camy += rustleW;
+
+				// Next direction to shake
+				rustleDirX = 3;
+
+				// Lower rustle of camera every frame
+				if (rustleW > 0) {
+					rustleW -= rustleSpe;
+				} else {
+					// Stop shaking
+					camshake = false;
+				}
+			}
+
+			// Shake going left
+			else if (rustleDirX == 3) {
+
+				// Shake camera
+				camx -= rustleW;
+
+				// Next direction to shake
+				rustleDirX = 4;
+
+				// Lower rustle of camera every frame
+				if (rustleW > 0) {
+					rustleW -= rustleSpe;
+				} else {
+					// Stop shaking
+					camshake = false;
+				}
+			}
+
+			// Shake going up
+			else if (rustleDirX == 4) {
+
+				// Shake camera
+				camy -= rustleW;
+
+				// Next direction to shake
+				rustleDirX = 1;
+
+				// Lower rustle of camera every frame
+				if (rustleW > 0) {
+					rustleW -= rustleSpe;
+				} else {
+					// Stop shaking
+					camshake = false;
+				}
+			}
 		}
-		if( camx+screenWidth > map.w ){
-			camx = map.w-screenWidth;
-		}
-		if( camy+screenHeight > map.h ){
-			camy = map.h-screenHeight ;
-		}*/
 	}
 
 	// Update camera
@@ -1022,10 +1125,15 @@ void PlayGame::RenderText(SDL_Renderer *gRenderer, LWindow &gWindow) {
 			   << ", tl.tilew: "  << tl.tilew     	<< ", tl.tileh: "  << tl.tileh
 			   << ", tl.Count: "  << tl.tileCount
 			   << ", camlock: " 	<< camlock 		<< ", part.count: " << part.count
-			   << ", pira.type: " 	<< pira.type;
+			   << ", p_camshake: " 	<< playerShakeCamera
+			   << ", camshake: " 	<< camshake
+			   << ", rustleW: " 	<< rustleW
+			   << ", rustleSpe: " 	<< rustleSpe
+			   << ", rustleDirX: " 	<< rustleDirX;
+
 		gText.loadFromRenderedText(gRenderer, tempss.str().c_str(), {255,255,255}, gFont, 200);
 		gText.setAlpha(255);
-		gText.render(gRenderer, 0+screenWidth-gText.getWidth(), 100, gText.getWidth(), gText.getHeight());
+		gText.render(gRenderer, 0+screenWidth-gText.getWidth()*3, 100, gText.getWidth(), gText.getHeight());
 
 		// Render tile debug
 		if (debug){
