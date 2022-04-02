@@ -40,6 +40,7 @@ void Pirate::Init(Pirate pirate[]){
 		pirate[i].speed 			= 0.0;
 		pirate[i].angle 			= 0.0;
 		pirate[i].health 			= 100;
+		pirate[i].maxHealth 		= 100;
 		pirate[i].damage 			= 5;
 		pirate[i].distance 			= 1;
 		pirate[i].alive 			= false;
@@ -71,7 +72,6 @@ void Pirate::Free(){
 void Pirate::spawn(Pirate pirate[], float x, float y,
 		           float w, float h, int realw, int realh,
 				   float angle, float speed,
-				   int type, double health,
 				   int distanceHeadIsFromCenterOfImage,
 				   int bulletW, int bulletH) {
 	for (int i = 0; i < max; i++)
@@ -105,7 +105,6 @@ void Pirate::spawn(Pirate pirate[], float x, float y,
 			pirate[i].xCenter 				= x+w/2 + newW - pirate[i].radius;
 			pirate[i].yCenter 				= y+h/2 + newH - pirate[i].radius;
 			//------------------------------------------------------------------------//
-			pirate[i].health			= health;
 			pirate[i].damage			= 5;
 			pirate[i].type 				= type;
 			pirate[i].distance 			= 1;
@@ -124,6 +123,9 @@ void Pirate::spawn(Pirate pirate[], float x, float y,
 				pirate[i].reloadSpeed = 4.25;
 				pirate[i].reloadTimer = 0.0;
 				pirate[i].atkRange = 700;
+				pirate[i].health			= 100;
+				pirate[i].healthDecay		= 100;
+				pirate[i].maxHealth 		= 100;
 			}
 			if (type == 1) {
 				pirate[i].atkSpeed = 9.65;
@@ -132,6 +134,9 @@ void Pirate::spawn(Pirate pirate[], float x, float y,
 				pirate[i].reloadSpeed = 9.25;
 				pirate[i].reloadTimer = 0.0;
 				pirate[i].atkRange = 825;
+				pirate[i].health			= 2000;
+				pirate[i].healthDecay		= 2000;
+				pirate[i].maxHealth 		= 2000;
 			}
 			pirate[i].atkSpeedTimer = 0.0;
 			pirate[i].shooting 		= false;
@@ -168,11 +173,20 @@ void Pirate::update(Pirate pirate[], Particle particle[], Particle &p_dummy,
 	{
 		if (pirate[i].alive)
 		{
-			// pirate target
-			float bmx2 = pirate[i].x+pirate[i].w/2;
-			float bmy2 = pirate[i].y+pirate[i].h/2;
+			// Health bar decay effect
+			if (pirate[i].healthDecay >= pirate[i].health)
+			{
+				pirate[i].healthDecay -= 0.25;
+			}
+
+			// Target's center
 			float bmx  = player.x2+player.radius;
 			float bmy  = player.y2+player.radius;
+
+			// Pirates center
+			float bmx2 = pirate[i].x+pirate[i].w/2;
+			float bmy2 = pirate[i].y+pirate[i].h/2;
+
 			// pirate distance from target
 			pirate[i].distance = sqrt((bmx - bmx2) * (bmx - bmx2) + (bmy - bmy2) * (bmy - bmy2));
 			if (pirate[i].distance <= 1) {
@@ -185,26 +199,26 @@ void Pirate::update(Pirate pirate[], Particle particle[], Particle &p_dummy,
 
 			// pirate moves if target is less than 768 pixels and greater than 384 pixels away
 			float constVX = 0.0;
-			float constVY = 0.0;
-			// shootPlayerDistance = 384;
+			float constVY = 0.0;\
 
-			// TODO [ ] BUG, if the pirate spawns within the player's attack range then it will not face the player
-			// 				 it will only shoot
+			// Look at player at any distance
+			pirate[i].angle = atan2(bmy - bmy2,bmx - bmx2);
+			pirate[i].angle = pirate[i].angle * (180 / 3.1416);
 
-			// If the player's distance is > 400 pixels and < 400 pixels
-			if (pirate[i].distance > 400 && pirate[i].distance < pirate[i].atkRange) {
+			if (pirate[i].angle < 0) {
+				pirate[i].angle = 360 - (-pirate[i].angle);
+			}
+
+			// Walk towards player if greater than attack range
+			if (pirate[i].distance > pirate[i].atkRange) {
 				constVX = pirate[i].speed * (bmx - bmx2) / pirate[i].distance;
 				constVY = pirate[i].speed * (bmy - bmy2) / pirate[i].distance;
 				//pirate[i].x += pirate[i].speed * (bmx - bmx2) / pirate[i].distance;
 				//pirate[i].y += pirate[i].speed * (bmy - bmy2) / pirate[i].distance;
-
-				pirate[i].angle = atan2(bmy - bmy2,bmx - bmx2);
-				pirate[i].angle = pirate[i].angle * (180 / 3.1416);
-
-				if (pirate[i].angle < 0) {
-					pirate[i].angle = 360 - (-pirate[i].angle);
-				}
 			}
+
+
+
 
 			//------------------------- This code makes the pirate "walk" to the player ---------------------//
 			///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -321,8 +335,8 @@ void Pirate::update(Pirate pirate[], Particle particle[], Particle &p_dummy,
 								p_dummy.spawnParticleAngle(particle, pirate[i].tag, 1,
 										barrelX, barrelY,
 										particleW, particleH,
-										pirate[i].angle, 20,
-									   5,
+										pirate[i].angle, 10,
+									   1,
 									   {255, 100,100}, 1,
 									   0.0, 0.0,
 									   255, 0,
@@ -584,15 +598,68 @@ void Pirate::render(SDL_Renderer* gRenderer, Pirate pirate[], int camx, int camy
 			int newX = pirate[i].x-wDifference/2;					// player starting position
 			int newY = pirate[i].y-hDifference/2;
 			if (pirate[i].type == 0) {
+				gTexture.setAlpha(255);
 				gTexture.render(gRenderer, newX - camx, newY - camy,
 						pirate[i].realw, pirate[i].realh, NULL, pirate[i].angle);
 			}
 			if (pirate[i].type == 1) {
+				gBoss.setAlpha(255);
 				gBoss.render(gRenderer, newX - camx, newY - camy,
 						pirate[i].realw, pirate[i].realh, NULL, pirate[i].angle);
 			}
 		}
 	}
+}
+
+void Pirate::RenderUI(SDL_Renderer* gRenderer, Pirate pirate[], int camx, int camy) {
+
+	for (int i = 0; i < max; i++) {
+		if (pirate[i].alive) {
+			const float yOffsetBar = 30;
+			const float barHeight = 12;
+			const float barWidth = pirate[i].w*0.75;
+			float uiX = pirate[i].x + pirate[i].w/2 - barWidth/2;
+			float uiY = pirate[i].y - barHeight - yOffsetBar;
+
+			// Health Decay bar on Mobes
+			{
+				// Health Decay bar, bg
+				RenderFillRect(gRenderer, uiX-camx, uiY - 20-camy, (barWidth*pirate[i].maxHealth)/pirate[i].maxHealth, barHeight, {0, 0, 0} );
+
+				// Render Decay health
+				RenderFillRect(gRenderer, uiX-camx, uiY - 20-camy, (barWidth*pirate[i].healthDecay)/pirate[i].maxHealth, barHeight, {60, 30, 30} );
+			}
+
+			// Health bar on Mobes
+			{
+				// Render health
+				RenderFillRect(gRenderer, uiX-camx, uiY - 20-camy, (barWidth*pirate[i].health)/pirate[i].maxHealth, barHeight, {200, 30, 30} );
+			}
+
+			// Render some info about pirate
+
+
+			//  Render Player Ammo
+			for (int j=0; j<pirate[i].magSize; j++) {
+				SDL_Rect tempRect = {uiX + j * 6-camx, uiY-camy, 6, 10};
+				SDL_SetRenderDrawColor(gRenderer, 60, 60, 60, 255);
+				SDL_RenderFillRect(gRenderer, &tempRect);
+			}
+			for (int j=0; j<pirate[i].ammo; j++) {
+				SDL_Rect tempRect = {uiX + j * 6-camx, uiY-camy, 6, 10};
+				SDL_SetRenderDrawColor(gRenderer, 40, 170, 200, 255);
+				SDL_RenderFillRect(gRenderer, &tempRect);
+			}
+		}
+	}
+}
+
+float Pirate::getCenterX(Pirate pirate[], int i) {
+	return pirate[i].x + pirate[i].w/2;
+}
+
+float Pirate::getCenterY(Pirate pirate[], int i) {
+	return pirate[i].y + pirate[i].h/2;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////

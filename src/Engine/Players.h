@@ -83,8 +83,6 @@ public:	// variables
 	unsigned int score	= 0;
 	unsigned int highscore = 0;
 	int HW				= 0;
-	int increment		= 35;
-	int wave			= 0;
 	double accuracy		= 0.0;
 	float totalShot		= 0;		// Total shot
 	float hits			= 0;		// Total hits
@@ -122,9 +120,15 @@ public: // Shooting variables
 	const float recoilBloomAmountMax = 10;
 public: // Health variables
 
+	// Waves
+	int increment = 1;
+	int wave = 0;
+
 	// Lives
-	int lives = 1;
-	int health			= 200;
+	int lives = 3;
+	int health;			// Default: 20
+	int healthDecay;	// Default: 20
+	int maxHealth;		// Default: 20
 
 	// Shield
 	int shieldFrame;
@@ -234,10 +238,16 @@ public:	// functions
 				Mix_Chunk *sAtariBoom, Mix_Chunk* sLazer, Mix_Chunk* sGrenade,
 				Mix_Chunk* sGrenadePickup, Mix_Chunk* sPistolReload);
 
-	void render(int mx, int my, int camx, int camy, LWindow gWindow,
-				SDL_Renderer* gRenderer,
-				TTF_Font *gFont, TTF_Font *gFont2,
-				SDL_Color color, int &PARTICLES, LTexture gText);
+	void render(int camx, int camy, LWindow gWindow,
+				SDL_Renderer* gRenderer, int &PARTICLES);
+
+	void RenderUI(SDL_Renderer *gRenderer,
+			SDL_Color color,
+			LTexture gText,
+			TTF_Font *gFont13, TTF_Font *gFont26,
+			int mx, int my,
+			float camx, float camy,
+			int pirateCount);
 
 
 public:	// Accessor functions

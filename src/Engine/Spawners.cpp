@@ -106,7 +106,10 @@ void Spawner::remove(Spawner spawner[]) {
 }
 
 // Update Spawner
-void Spawner::update(Spawner spawner[], Asteroid asteroid[], Asteroid &a_dummy, int targetX, int targetY, int mx, int my, int camx, int camy){
+void Spawner::update(Spawner spawner[],
+		Asteroid asteroid[], Asteroid &a_dummy,
+		Pirate pirate[], Pirate &pira,
+		int targetX, int targetY, int mx, int my, int camx, int camy){
 	for (int i = 0; i < 200; i++){
 		if (spawner[i].alive)
 		{
@@ -121,7 +124,6 @@ void Spawner::update(Spawner spawner[], Asteroid asteroid[], Asteroid &a_dummy, 
 			// Spawn asteroids
 			if (spawner[i].type == 0)
 			{
-
 				spawner[i].x+=spawner[i].reduction/2;
 				spawner[i].y+=spawner[i].reduction/2;
 				spawner[i].w -= spawner[i].reduction;
@@ -130,10 +132,21 @@ void Spawner::update(Spawner spawner[], Asteroid asteroid[], Asteroid &a_dummy, 
 					spawner[i].spawnTimer 	= 0;
 					spawner[i].spawned 	   += 1;
 		            int randAngle 			= randDouble(0.0, 360.0);
-		            a_dummy.spawnAsteroidAngle(asteroid, spawner[i].x-spawner[i].spawnedW/2,
+
+		            // Spawn asteroid
+		            /*a_dummy.spawnAsteroidAngle(asteroid, spawner[i].x-spawner[i].spawnedW/2,
 		            									 spawner[i].y-spawner[i].spawnedH/2,
 		            									 spawner[i].spawnedW, spawner[i].spawnedH,
-		    									 	 	 	 randAngle, 0.5);
+		    									 	 	 	 randAngle, 0.5);*/
+
+		            // Spawn pirate
+					pira.spawn(pirate, spawner[i].x-spawner[i].spawnedW/2,
+							 spawner[i].y-spawner[i].spawnedH/2,
+							  80, 80, 160, 160,
+							  0.0, randDouble(3.6, 4.4),
+							  40, 57, 17);
+
+		            // Remove spawner
 					spawner[i].alive = false;
 					count--;
 				}

@@ -8,9 +8,9 @@
 #ifndef LOCAL_HELPER_H_
 #define LOCAL_HELPER_H_
 
-#include <SDL2/SDL.h>
-
 #include "Timers.h"
+
+#include <SDL2/SDL.h>
 
 class Helper {
 public:
@@ -27,6 +27,15 @@ public:
 	const int screenWidth = 1920;
 	const int screenHeight = 1080;
 public:
+
+	// Check sollision
+	bool checkCollision(int x, int y, int w, int h, int x2, int y2, int w2, int h2);
+
+	bool checkCollisionRect( SDL_Rect a, SDL_Rect b );
+
+	void RenderRect(SDL_Renderer *gRenderer, float x, float y, float w, float h, SDL_Color color);
+
+	void RenderFillRect(SDL_Renderer *gRenderer, float x, float y, float w, float h, SDL_Color color);
 
 	// Generate a random double number
 	double randDouble(double fMin, double fMax);

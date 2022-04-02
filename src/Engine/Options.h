@@ -19,6 +19,7 @@
 
 class Options {
 public:
+	Helper helper;
 	enum OptionsResult { Back, Nothing, StartGame, ShowingMenu, Exit };
 	OptionsResult optionsResult = Nothing;
 public:
@@ -302,12 +303,23 @@ public:	// functions
 	// Load Options menu
 	void start(LWindow &gWindow, SDL_Renderer *gRenderer, Players &player);
 
+	// Return a string the user has entered (hint is used to give the Editor an idea of what to write)
+	std::string GetInput(LWindow &gWindow, SDL_Renderer *gRenderer, bool &mainLoop, std::string hint);
+
 	// User input
 	void OnKeyDown(SDL_Keycode sysm, Players &player);
 	void mousePressed(Players &player);
 	void mouseReleased(LWindow &gWindow);
 
 	bool checkCollision(int x, int y, int w, int h, int x2, int y2, int w2, int h2);
+
+public: // Saving functions
+
+	// Save a level to a directory
+	void SaveLevel(LWindow &gWindow, SDL_Renderer *gRenderer, bool &mainLoop,
+				   std::string SpawnCoordinatesData,
+				   std::string TileSaveData);
+
 };
 
 #endif /* OPTIONS_H_ */

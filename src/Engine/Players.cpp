@@ -226,23 +226,37 @@ void Players::saveHighScore() {
 
 // Reset game
 void Players::reset(float spawnX, float spawnY, std::string newName, bool respawn){
+
+	// Health
+	alive 				= true;
+	deathScreen 		= false;
+	health				= 20;
+	healthDecay			= 20;
+	maxHealth			= 20;
+
+	// Position
 	x 					= spawnX;
 	y 					= spawnY;
-	name					= newName;
-	accuracy				= 0.0;
-	hits					= 0.0;
-	totalShot				= 0.0;
 	vX 					= 0.0;
 	vY 					= 0.0;
+
+	// Name
+	name				= newName;
+
+	// Stats
+	accuracy			= 0.0;
+	hits				= 0.0;
+	totalShot			= 0.0;
+
+	// Shooting
 	delayT 				= 0;
-	health				= 20;
 	delay 				= false;
-	initialshot 			= false;
+	initialshot 		= false;
 	thrust 				= false;
-	deathScreen 			= false;
-	alive 				= true;
-	returned				= false;
+	returned			= false;
 	indexSaved 			= -1;
+
+	// Shield
 	shieldFrame			= 1;
 	shieldTick			= 0;
 	shieldT				= 300;
@@ -289,11 +303,12 @@ void Players::reset(float spawnX, float spawnY, std::string newName, bool respaw
 
 	collectedKeys = 0;
 
+	// If we are not respawning, reset everything
 	if (!respawn){
 		score 			= 0;
-		wave 				= 0;
-		increment	 		= 35;
-		lives 			= 1;
+		wave 			= 0;
+		increment	 	= 1;
+		lives 			= 3;
 	}
 }
 
@@ -480,7 +495,7 @@ void Players::fire(Particle particle[], Particle &p_dummy, int mx, int my,
 						renderFlash = true;
 
 						// subtract remaining grenades
-						//ammo--;
+						ammo--;
 
 						// Check if we ran out of ammo
 						if (ammo <= 0) {
@@ -774,7 +789,7 @@ void Players::update(Map &map,
 					int mx, int my, int camx, int camy,
 					float spawnX, float spawnY,
 					LWindow gWindow, SDL_Renderer* gRenderer,
-					LTexture gText, TTF_Font *gFont, SDL_Color color,
+					LTexture gText, TTF_Font *gFont13, SDL_Color color,
 					Mix_Chunk *sAtariBoom, Mix_Chunk* sLazer, Mix_Chunk* sGrenade,
 					Mix_Chunk* sGrenadePickup, Mix_Chunk* sPistolReload)
 {
@@ -850,6 +865,7 @@ void Players::update(Map &map,
 
 			// Player ran out of lives, que Death Screen
 			if (lives<=0){
+				SDL_ShowCursor(true);
 
 				// Reset some accumulated stuff
 				e_dummy.ENEMY_SPAWN = 1;
@@ -877,7 +893,7 @@ void Players::update(Map &map,
 		}*/
 
 		// Player boundaries
-		/*if (x+w < map.x) {
+		if (x+w < map.x) {
 			x = map.x+map.w-w;
 		}
 		if (x > map.x+map.w) {
@@ -888,7 +904,7 @@ void Players::update(Map &map,
 		}
 		if (y > map.y+map.h) {
 			y = map.y-h;
-		}*/
+		}
 	}else{
 		// High-Score moving
 		travel += 0.05 * dir;
@@ -1000,9 +1016,7 @@ void Players::update(Map &map,
 }
 
 // Render Player
-void Players::render(int mx, int my, int camx, int camy, LWindow gWindow, SDL_Renderer* gRenderer,
-					TTF_Font *gFont, TTF_Font *gFont2, SDL_Color color, int &PARTICLES, LTexture gText) {
-	gText.setAlpha(255);
+void Players::render(int camx, int camy, LWindow gWindow, SDL_Renderer* gRenderer, int &PARTICLES) {
 	// If alive
 	if (alive){
 
@@ -1055,7 +1069,6 @@ void Players::render(int mx, int my, int camx, int camy, LWindow gWindow, SDL_Re
 		spr_player_head.render(gRenderer, newX-camx, newY-camy, realw, realh, NULL, angle);
 
 
-
 		/*SDL_SetRenderDrawColor(gRenderer, 200, 200, 200, 255);
 		SDL_RenderDrawLine(gRenderer, x+w/2 + barrelW-camx,
 									  y+h/2 + barrelH-camy,
@@ -1081,6 +1094,42 @@ void Players::render(int mx, int my, int camx, int camy, LWindow gWindow, SDL_Re
 			spr_player_head.render(gRenderer, screenWidth/2+i*16, 72, 16, 16);
 		}*/
 
+	}else{
+
+	}
+}
+
+void Players::RenderUI(SDL_Renderer *gRenderer,
+		SDL_Color color,
+		LTexture gText,
+		TTF_Font *gFont13, TTF_Font *gFont26,
+		int mx, int my,
+		float camx, float camy,
+		int pirateCount) {
+
+	gText.setAlpha(255);
+	// If player alive
+	if (this->alive) {
+		const float yOffsetBar = 30;
+		const float barHeight = 20;
+		const float barWidth = this->w*1.25;
+		float uiX = this->x + this->w/2 - barWidth/2;
+		float uiY = this->y - barHeight - yOffsetBar;
+
+		// Health Decay bar on Mobes
+		{
+			// Health Decay bar, bg
+			RenderFillRect(gRenderer, uiX-camx, uiY-camy, (barWidth*this->maxHealth)/this->maxHealth, barHeight, {0, 0, 0} );
+
+			// Render Decay health
+			RenderFillRect(gRenderer, uiX-camx, uiY-camy, (barWidth*this->healthDecay)/this->maxHealth, barHeight, {30, 60, 30} );
+		}
+
+		// Health bar on Mobes
+		{
+			// Render health
+			RenderFillRect(gRenderer, uiX-camx, uiY-camy, (barWidth*this->health)/this->maxHealth, barHeight, {30, 200, 30} );
+		}
 
 		// Render cross-hair of player
 		double wedth = 21 * radianSin;
@@ -1092,13 +1141,16 @@ void Players::render(int mx, int my, int camx, int camy, LWindow gWindow, SDL_Re
 		// Draw a circle bloom cross-hair
 		SDL_SetRenderDrawColor(gRenderer, 255, 255, 255, 255);
 		SDL_RenderDrawCircle(gRenderer, mx-wedth, my+hedth, recoilBloomAmount * 5);
+	}// If player alive
 
-	}else{
+	// If deathscreen
+	if (deathScreen) {
+
 		// Continue YES or NO Screen
 		if (deathScreen)
 		{
 			// Render Text
-			gText.loadFromRenderedText(gRenderer, "You have died. Continue?", color, gFont2);
+			gText.loadFromRenderedText(gRenderer, "You have died. Continue?", color, gFont26);
 			gText.render(gRenderer, screenWidth/2-gText.getWidth()/2, screenHeight/2-gText.getHeight()/2-50, gText.getWidth(), gText.getHeight());
 
 			// Render buttons: Yes
@@ -1114,18 +1166,18 @@ void Players::render(int mx, int my, int camx, int camy, LWindow gWindow, SDL_Re
 			SDL_RenderDrawRect(gRenderer, &continueButton[2]);
 
 			// Render button texts: Yes or No
-			gText.loadFromRenderedText(gRenderer, "Yes", color, gFont2);
+			gText.loadFromRenderedText(gRenderer, "Yes", color, gFont26);
 			gText.render(gRenderer,  continueButton[0].x+continueButton[0].w/2-gText.getWidth()/2,
 									 continueButton[0].y+continueButton[0].h/2-gText.getHeight()/2,
 									 gText.getWidth(), gText.getHeight());
 
-			gText.loadFromRenderedText(gRenderer, "No", color, gFont2);
+			gText.loadFromRenderedText(gRenderer, "No", color, gFont26);
 			gText.render(gRenderer,  continueButton[1].x+continueButton[1].w/2-gText.getWidth()/2,
 									 continueButton[1].y+continueButton[1].h/2-gText.getHeight()/2,
 									 gText.getWidth(), gText.getHeight());
 
 			// Render Text
-			gText.loadFromRenderedText(gRenderer, "Reset High Scores", color, gFont2);
+			gText.loadFromRenderedText(gRenderer, "Reset High Scores", color, gFont26);
 			gText.render(gRenderer, continueButton[2].x+continueButton[2].w/2-gText.getWidth()/2,
 									 continueButton[2].y+continueButton[2].h/2-gText.getHeight()/2,
 									 gText.getWidth(), gText.getHeight());
@@ -1141,13 +1193,13 @@ void Players::render(int mx, int my, int camx, int camy, LWindow gWindow, SDL_Re
 			SDL_RenderDrawRect(gRenderer, &continueButton[2]);
 
 			// Render Text
-			gText.loadFromRenderedText(gRenderer, "PLAY", color, gFont2);
+			gText.loadFromRenderedText(gRenderer, "PLAY", color, gFont26);
 			gText.render(gRenderer, continueButton[0].x+continueButton[0].w/2-gText.getWidth()/2,
 									 continueButton[0].y+continueButton[0].h/2-gText.getHeight()/2,
 									 gText.getWidth(), gText.getHeight());
 
 			// Render Text
-			gText.loadFromRenderedText(gRenderer, "Reset High Scores", color, gFont2);
+			gText.loadFromRenderedText(gRenderer, "Reset High Scores", color, gFont26);
 			gText.render(gRenderer, continueButton[2].x+continueButton[2].w/2-gText.getWidth()/2,
 									 continueButton[2].y+continueButton[2].h/2-gText.getHeight()/2,
 									 gText.getWidth(), gText.getHeight());
@@ -1164,98 +1216,101 @@ void Players::render(int mx, int my, int camx, int camy, LWindow gWindow, SDL_Re
 
 				// Show Player where they are ranked
 				if (indexSaved==i){
-					gText.loadFromRenderedText(gRenderer, temps[0].c_str(), {244,144,20}, gFont);
+					gText.loadFromRenderedText(gRenderer, temps[0].c_str(), {244,144,20}, gFont13);
 					gText.setAlpha(255-i*10);
 					gText.render(gRenderer, continueButton[0].x+position,
 							continueButton[0].y+continueButton[0].h+20+i*14,
 							gText.getWidth(), gText.getHeight());
 				}else{
-					gText.loadFromRenderedText(gRenderer, temps[0].c_str(), color, gFont);
+					gText.loadFromRenderedText(gRenderer, temps[0].c_str(), color, gFont13);
 					gText.setAlpha(255-i*10);
 					gText.render(gRenderer, continueButton[0].x+position,
 							continueButton[0].y+continueButton[0].h+20+i*14,
 							gText.getWidth(), gText.getHeight());
 				}
 
-				gText.loadFromRenderedText(gRenderer, temps[1].c_str(), color, gFont);
+				gText.loadFromRenderedText(gRenderer, temps[1].c_str(), color, gFont13);
 				gText.setAlpha(255-i*10);
 				gText.render(gRenderer, position2,
 						continueButton[1].y+continueButton[1].h+20+i*14,
 						gText.getWidth(), gText.getHeight());
 			}
 		}
+	} // end death screen check
 
-
-	}
-
+	// Render highscore, score and wave text, and enemies left text
 	std::stringstream tempsi;
 	tempsi.str( std::string() );
-	//tempsi << "Highscore: " << highscore;
-	tempsi << "recoilBloomAmount: " << recoilBloomAmount;
-	gText.loadFromRenderedText(gRenderer, tempsi.str().c_str(), {244, 144, 20}, gFont2);
+	tempsi << "Highscore: " << highscore;
+	//tempsi << "recoilBloomAmount: " << recoilBloomAmount;
+	gText.loadFromRenderedText(gRenderer, tempsi.str().c_str(), {244, 144, 20}, gFont26);
 	gText.render(gRenderer, screenWidth-gText.getWidth()-15, 5, gText.getWidth(), gText.getHeight());
 
 	tempsi.str( std::string() );
-	//tempsi << "Score: " << score;
-	tempsi << "Shooting: " << shooting;
-	gText.loadFromRenderedText(gRenderer, tempsi.str().c_str(), {255,255,255}, gFont2);
-	gText.render(gRenderer, screenWidth-gText.getWidth()-15, 31, gText.getWidth(), gText.getHeight());
+	tempsi << "Score: " << score;
+	//tempsi << "Shooting: " << shooting;
+	gText.loadFromRenderedText(gRenderer, tempsi.str().c_str(), {255,255,255}, gFont26);
+	gText.render(gRenderer, screenWidth-gText.getWidth()-15, 5+26, gText.getWidth(), gText.getHeight());
 
 	tempsi.str( std::string() );
 	tempsi << "Wave: " << wave;
-	gText.loadFromRenderedText(gRenderer, tempsi.str().c_str(), {255,255,255}, gFont2);
-	gText.render(gRenderer, screenWidth-gText.getWidth()-15, 57, gText.getWidth(), gText.getHeight());
+	gText.loadFromRenderedText(gRenderer, tempsi.str().c_str(), {255,255,255}, gFont26);
+	gText.render(gRenderer, screenWidth-gText.getWidth()-15, 5+26*2, gText.getWidth(), gText.getHeight());
+
+	tempsi.str( std::string() );
+	tempsi << "Pirates: " << pirateCount;
+	gText.loadFromRenderedText(gRenderer, tempsi.str().c_str(), {200,20,20}, gFont26);
+	gText.render(gRenderer, screenWidth-gText.getWidth()-15, 5+26*3, gText.getWidth(), gText.getHeight());
 
 	/*tempsi.str( std::string() );
 	tempsi << "Grenades: " << grenades;
-	gText.loadFromRenderedText(gRenderer, tempsi.str().c_str(), {255,255,255}, gFont2);
+	gText.loadFromRenderedText(gRenderer, tempsi.str().c_str(), {255,255,255}, gFont26);
 	gText.render(gRenderer, 10, screenHeight-gText.getHeight(), gText.getWidth(), gText.getHeight());*/
 
 	/*tempsi.str( std::string() );
 	tempsi << "Health: " << health;
-	gText.loadFromRenderedText(tempsi.str().c_str(), {0,255,0}, gFont2, gRenderer);
+	gText.loadFromRenderedText(tempsi.str().c_str(), {0,255,0}, gFont26, gRenderer);
 	gText.render(gRenderer, screenWidth-gText.getWidth()-15, 58, gText.getWidth(), gText.getHeight());*/
 
 	// Check what keys are pressed
 	/*for (int i=0; i<25; i++){
 		std::std::stringstream tempss;
 		tempss << "i: " << i << " -        " << SDL_JoystickGetButton(joy, i);
-		gText.loadFromRenderedText(tempss.str().c_str(), {255, 255, 255, 255}, gFont, gRenderer);
+		gText.loadFromRenderedText(tempss.str().c_str(), {255, 255, 255, 255}, gFont13, gRenderer);
 		gText.render(gRenderer, 5, 5+i*15, gText.getWidth(), gText.getHeight());
 	}
 
 	std::std::stringstream tempss;
 	tempss.str(std::string());
 	tempss << "Axis: " << 0 << " -        " << SDL_JoystickGetAxis(joy, 0);
-	gText.loadFromRenderedText(tempss.str().c_str(), {255, 255, 255, 255}, gFont, gRenderer);
+	gText.loadFromRenderedText(tempss.str().c_str(), {255, 255, 255, 255}, gFont13, gRenderer);
 	gText.render(gRenderer, 60, 5, gText.getWidth(), gText.getHeight());
 
 	tempss.str(std::string());
 	tempss << "Axis: " << 1 << " -        " << SDL_JoystickGetAxis(joy, 1);
-	gText.loadFromRenderedText(tempss.str().c_str(), {255, 255, 255, 255}, gFont, gRenderer);
+	gText.loadFromRenderedText(tempss.str().c_str(), {255, 255, 255, 255}, gFont13, gRenderer);
 	gText.render(gRenderer, 60, 20, gText.getWidth(), gText.getHeight());
 
 	tempss.str(std::string());
 	tempss << "Axis: " << 2 << " -        " << SDL_JoystickGetAxis(joy, 2);
-	gText.loadFromRenderedText(tempss.str().c_str(), {255, 255, 255, 255}, gFont, gRenderer);
+	gText.loadFromRenderedText(tempss.str().c_str(), {255, 255, 255, 255}, gFont13, gRenderer);
 	gText.render(gRenderer, 60, 35, gText.getWidth(), gText.getHeight());
 
 	tempss.str(std::string());
 	tempss << "Axis: " << 3 << " -        " << SDL_JoystickGetAxis(joy, 3);
-	gText.loadFromRenderedText(tempss.str().c_str(), {255, 255, 255, 255}, gFont, gRenderer);
+	gText.loadFromRenderedText(tempss.str().c_str(), {255, 255, 255, 255}, gFont13, gRenderer);
 	gText.render(gRenderer, 60, 50, gText.getWidth(), gText.getHeight());
 
 	tempss.str(std::string());
 	tempss << "Axis: " << 4 << " -        " << SDL_JoystickGetAxis(joy, 4);
-	gText.loadFromRenderedText(tempss.str().c_str(), {255, 255, 255, 255}, gFont, gRenderer);
+	gText.loadFromRenderedText(tempss.str().c_str(), {255, 255, 255, 255}, gFont13, gRenderer);
 	gText.render(gRenderer, 60, 65, gText.getWidth(), gText.getHeight());
 
 	tempss.str(std::string());
 	tempss << "Axis: " << 5 << " -        " << SDL_JoystickGetAxis(joy, 5);
-	gText.loadFromRenderedText(tempss.str().c_str(), {255, 255, 255, 255}, gFont, gRenderer);
+	gText.loadFromRenderedText(tempss.str().c_str(), {255, 255, 255, 255}, gFont13, gRenderer);
 	gText.render(gRenderer, 60, 80, gText.getWidth(), gText.getHeight());*/
 }
-
 
 
 // Key Pressed

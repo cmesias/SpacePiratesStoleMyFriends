@@ -9,6 +9,7 @@
 #define LOCAL_SPAWNERS_H_
 
 #include "Asteroids.h"
+#include "Pirate.h"
 #include "LTexture.h"
 #include "Helper.h"
 
@@ -51,7 +52,10 @@ public:	// functions
 	void remove(Spawner spawner[]);
 
 	// Update Spawner
-	void update(Spawner spawner[], Asteroid asteroid[], Asteroid &a, int targetX, int targetY, int mx, int my, int camx, int camy);
+	void update(Spawner spawner[],
+			Asteroid asteroid[], Asteroid &a,
+			Pirate pirate[], Pirate &pira,
+			int targetX, int targetY, int mx, int my, int camx, int camy);
 
 	// Render Spawner
 	void render(Spawner spawner[], int camx, int camy, SDL_Renderer* gRenderer);

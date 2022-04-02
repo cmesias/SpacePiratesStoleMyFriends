@@ -33,8 +33,10 @@ public:	// Min variables
 	float angle;
 	float vX,vY;
 	float speed;
-	double health;
-	double damage;
+	float health;
+	float healthDecay;
+	float maxHealth;
+	float damage;
 	float distance;
 	std::string tag;
 	bool alive;
@@ -90,7 +92,6 @@ public:	// Main functions
 	void spawn(Pirate pirate[], float x, float y,
 			   float w, float h, int imageW, int imageH,
 			   float angle, float speed,
-			   int type, double health,
 			   int distanceHeadIsFromCenterOfImage, int bulletW, int bulletH);
 	void update(Pirate pirate[], Particle particle[], Particle &p_dummy,
 				Map &map, Players &player,
@@ -98,6 +99,11 @@ public:	// Main functions
 				int camx, int camy);
 	void render(SDL_Renderer* gRenderer, Pirate pirate[], int camx, int camy);
 
+	void RenderUI(SDL_Renderer* gRenderer, Pirate pirate[], int camx, int camy);
+
+	float getCenterX(Pirate pirate[], int i);
+
+	float getCenterY(Pirate pirate[], int i);
 
 public: // Editor Variables
 

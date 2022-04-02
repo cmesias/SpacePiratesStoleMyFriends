@@ -174,8 +174,10 @@ void PlayGame::Load(LWindow &gWindow, SDL_Renderer *gRenderer) {
 	// load media for other classes
 
 	// Tile class load
+	tl.Load(gRenderer);
 
 	// Tilebar class load
+	tb.Load(gRenderer);
 
 	// Pirate class load
 	pira.Load(gRenderer);
@@ -224,6 +226,8 @@ void PlayGame::Free() {
 	enem.free();
 	spaw.free();
 	aste.freeResources();
+	tl.Free();
+	//tb.Free();
 }
 
 /* 5-31-2017
@@ -241,15 +245,15 @@ void PlayGame::Show(LWindow &gWindow, SDL_Renderer *gRenderer, PlayGame::Result 
     // Play Music, looped
 	//Mix_FadeInMusic(sAmbientMusic, -1, 0);
 
+	// Hides mouse, and traps mouse in game so it doesn't go out
+	SDL_SetRelativeMouseMode(SDL_TRUE);
+	SDL_ShowCursor(false);
+
 	// While loop
 	while (!quit) {
 
 		// Start FPS cap
 		fps.start();
-
-		// Hides mouse, and traps mouse in game so it doesn't go out
-		SDL_SetRelativeMouseMode(SDL_TRUE);
-		SDL_ShowCursor(false);
 
 		// Get mouse position
 		SDL_GetMouseState(&mx, &my);
@@ -350,7 +354,13 @@ void PlayGame::Show(LWindow &gWindow, SDL_Renderer *gRenderer, PlayGame::Result 
 						debug = (!debug);
 						break;
 					case SDLK_p:
-						editor = (!editor);
+						if (editor) {
+							editor = false;
+							camlock = true;
+						} else {
+							editor = true;
+							camlock = false;
+						}
 						break;
 					case SDLK_y:				// camera lock
 						camlock = (!camlock);
@@ -366,6 +376,45 @@ void PlayGame::Show(LWindow &gWindow, SDL_Renderer *gRenderer, PlayGame::Result 
 						break;
 					case SDLK_RSHIFT:
 						shift = false;
+						break;
+					case SDLK_m:
+						if (editor) {
+							std::stringstream mapSizeSS;
+							mapSizeSS << GetInput(gWindow, gRenderer, quit, "Enter Keys required and Level Size (i.e.: 3 128 128): ");
+							// Check if the Editor entered any numbers
+							if (mapSizeSS.str().size() > 0) {
+								mapSizeSS >> tl.requiredKeys >> tl.levelWidth >> tl.levelHeight;
+							}
+						}
+						break;
+					case SDLK_s:
+						if (editor && !shift) {
+							// Editor visual message
+							std::stringstream tempss;
+							tempss << "Saving level data...";
+							tex.spawn(text, 0, 0, 0.0, 0.0, 255, tempss.str().c_str());
+
+							// Save Data for spawn coordinates
+							std::stringstream SpawnCoordinatesData;
+							SpawnCoordinatesData << spawnX << " " << spawnY << " " << doorX << " " << doorY;
+
+							// Save Data for Tiles
+							std::stringstream TileSaveData;
+							TileSaveData << tl.SaveData(tile);
+
+							// Save Data for Collision Tiles
+							//std::stringstream CollisionTileSaveData;
+							//CollisionTileSaveData << tc.saveTiles(tilec);
+
+							// Go to saving interface
+							SaveLevel(gWindow, gRenderer, quit,
+									  SpawnCoordinatesData.str().c_str(),
+									  TileSaveData.str().c_str());
+							// Editor visual message
+							tempss.str(std::string());
+							tempss << "Finished saving.";
+							tex.spawn(text, 0, 0, 0.0, 0.0, 255, tempss.str().c_str());
+						}
 						break;
 					}
 
@@ -451,6 +500,9 @@ void PlayGame::Show(LWindow &gWindow, SDL_Renderer *gRenderer, PlayGame::Result 
 			// Render objects
 			Render(gRenderer, gWindow);
 
+			// Render UI
+			RenderUI(gRenderer);
+
 			// Render text
 			RenderDebug(gRenderer);
 
@@ -478,80 +530,84 @@ void PlayGame::Show(LWindow &gWindow, SDL_Renderer *gRenderer, PlayGame::Result 
 // Update everything
 void PlayGame::Update(LWindow &gWindow, SDL_Renderer *gRenderer) {
 
-	// Update tiles
-	TilesUpdate();
-
-	// Update Variables
-	bool test;
-	test = true;
-
-	// Generate Stars
-	if (test){
-	//	part.genStars(particle, gWindow.getWidth(), gWindow.getHeight());
-	}
-
-	// Update Particles
-	part.updateStarParticles(particles, map.x, map.y, map.w, map.h);
-	part.updateBulletParticles(particles, map.x, map.y, map.w, map.h);
-
-	// Update Asteroids
-	aste.updateAsteroid(asteroid, particles, part,
-								  player.alive, player.shield, player.score, enem.mileScore, player.health,
-								  mx, my, camx, camy, gWindow.getWidth(), gWindow.getHeight(),
-								  map.x, map.y, map.w, map.h);
-
-	// Update Spawner: spawns an Asteroid
-	//spaw.update(spawner, asteroid, aste, player.x+player.w/2, player.y+player.h/2, mx, my, camx, camy);
-
-	// Update Player
-	player.update(map,
-				  asteroid, aste,
-				  enemy, enem,
-				  particles, part,
-				  mx, my, camx, camy,
-				  map.x+map.w/2-player.w/2, map.y+map.h/2-player.h/2,
-				  gWindow, gRenderer,
-				  gText, gFont26, {255,255,255},
-				  sAtariBoom, sLazer, sGrenade,
-				  sGrenadePickup, sPistolReload);
-
-	// If Player is alive
-	if (player.alive) {
-		// update pirates
-		pira.update(pirate, particles, part, map, player, sLazer, sPistolReload, camx, camy);
-
-		// Update Enemy
-		enem.update(enemy,
-				particles, part,
-					player.alive,
-					player.x+player.w/2, player.y+player.h/2, player.w/2,
-					player.score, map.x, map.y, map.w, map.h,
-					sLazer, sAtariBoom);
-	}
-
-	// Update Player & Asteroid collision check
-	//checkCollisionPlayerAsteroid(player, asteroid);
-
-	// Update Player Particle & Asteroid collision check
-	//checkCollisionParticleAsteroid(particles, part, asteroid, player);
-
-	// Update Player Particle & Enemy collision check
-	//checkCollisionParticleEnemy(particles, part, enemy, player);
-
-	// Collision, particle & pirate
-	checkCollisionParticlePirate();
-
-	// Update Enemy Particle & Player collision check
-	checkCollisionParticlePlayer(particles, part, player);
-
-	// Collision: Grenade Particle & Pirate
-	checkCollisionGrenadePlayer();
 
 	// Update Asteroids: Wave re-spawn
-	//spawnAsteroidsNow2();
+	if (!editor) {
 
-	// Damage text: for pirate
-	tex.update(text);
+		// Update tiles
+		TilesUpdate();
+
+		// Update Variables
+		bool test;
+		test = true;
+
+		// Generate Stars
+		if (test){
+		//	part.genStars(particle, gWindow.getWidth(), gWindow.getHeight());
+		}
+
+		// Update Particles
+		part.updateStarParticles(particles, map.x, map.y, map.w, map.h);
+		part.updateBulletParticles(particles, map.x, map.y, map.w, map.h);
+
+		// Update Asteroids
+		aste.updateAsteroid(asteroid, particles, part,
+									  player.alive, player.shield, player.score, enem.mileScore, player.health,
+									  mx, my, camx, camy, gWindow.getWidth(), gWindow.getHeight(),
+									  map.x, map.y, map.w, map.h);
+
+		// Update Spawner: spawns an Asteroid
+		spaw.update(spawner, asteroid, aste, pirate, pira, player.x+player.w/2, player.y+player.h/2, mx, my, camx, camy);
+
+		// Update Player
+		player.update(map,
+					  asteroid, aste,
+					  enemy, enem,
+					  particles, part,
+					  mx, my, camx, camy,
+					  map.x+map.w/2-player.w/2, map.y+map.h/2-player.h/2,
+					  gWindow, gRenderer,
+					  gText, gFont26, {255,255,255},
+					  sAtariBoom, sLazer, sGrenade,
+					  sGrenadePickup, sPistolReload);
+
+		// If Player is alive
+		if (player.alive) {
+			// update pirates
+			pira.update(pirate, particles, part, map, player, sLazer, sPistolReload, camx, camy);
+
+			// Update Enemy
+			enem.update(enemy,
+					particles, part,
+						player.alive,
+						player.x+player.w/2, player.y+player.h/2, player.w/2,
+						player.score, map.x, map.y, map.w, map.h,
+						sLazer, sAtariBoom);
+		}
+
+		// Update Player & Asteroid collision check
+		//checkCollisionPlayerAsteroid(player, asteroid);
+
+		// Update Player Particle & Asteroid collision check
+		//checkCollisionParticleAsteroid(particles, part, asteroid, player);
+
+		// Update Player Particle & Enemy collision check
+		//checkCollisionParticleEnemy(particles, part, enemy, player);
+
+		// Collision, particle & pirate
+		checkCollisionParticlePirate();
+
+		// Update Enemy Particle & Player collision check
+		checkCollisionParticlePlayer(particles, part, player);
+
+		// Collision: Grenade Particle & Pirate
+		checkCollisionGrenadePlayer();
+
+		spawnAsteroidsNow2();
+
+		// Damage text: for pirate
+		tex.update(text);
+	}
 
 	///////////////////////////////////////////////////////////////////////////////////////////////
 	///////////////////////////////////////////////////////////////////////////////////////////////
@@ -713,10 +769,8 @@ void PlayGame::Render(SDL_Renderer *gRenderer, LWindow &gWindow) {
 	enem.render(enemy, camx, camy, gRenderer);
 
 	// Render our player
-	player.render(mx, my, camx, camy, gWindow,
-				gRenderer,
-				gFont13, gFont26,
-				{255,255,255}, part.count, gText);
+	player.render(camx, camy, gWindow,
+				gRenderer, part.count);
 
 	// Render pirate's
 	pira.render(gRenderer, pirate, camx, camy);
@@ -733,7 +787,18 @@ void PlayGame::Render(SDL_Renderer *gRenderer, LWindow &gWindow) {
 	tl.Render(gRenderer, tile, 6, camx, camy);
 }
 
-// Render debug information
+void PlayGame::RenderUI(SDL_Renderer *gRenderer) {
+
+	pira.RenderUI(gRenderer, pirate, camx, camy);
+	player.RenderUI(gRenderer,
+			{255,255,255},
+			gText,
+			gFont13, gFont26,
+			mx, my,
+			camx, camy,
+			pira.count);
+}
+
 void PlayGame::RenderDebug(SDL_Renderer *gRenderer)
 {
 	// If debugging, show debug info
@@ -798,8 +863,9 @@ void PlayGame::RenderDebug(SDL_Renderer *gRenderer)
 				// Render circle
 				gCircle.setColor(255,255,255);
 				gCircle.setAlpha(180);
-				gCircle.render(gRenderer, pirate[i].xCenter-camx,
-						pirate[i].yCenter-camy,
+				gCircle.render(gRenderer,
+						pirate[i].getCenterX(pirate, i)-camx,
+						pirate[i].getCenterY(pirate, i)-camy,
 						pirate[i].w, pirate[i].h);
 
 				// Render angle Text
@@ -822,13 +888,25 @@ void PlayGame::RenderDebug(SDL_Renderer *gRenderer)
 // Render text
 void PlayGame::RenderText(SDL_Renderer *gRenderer, LWindow &gWindow) {
 
+	//  Render Lives left
+	for (int i=0; i<3; i++) {
+		SDL_Rect tempRect = {24 + i * 38, 20, 32, 48};
+		SDL_SetRenderDrawColor(gRenderer, 60, 60, 60, 255);
+		SDL_RenderFillRect(gRenderer, &tempRect);
+	}
+	for (int i=0; i<player.lives; i++) {
+		SDL_Rect tempRect = {24 + i * 38, 20, 32, 48};
+		SDL_SetRenderDrawColor(gRenderer, 200, 40, 40, 255);
+		SDL_RenderFillRect(gRenderer, &tempRect);
+	}
+
 	// Render Player Health
-	for (int i=0; i<10; i++) {
+	for (int i=0; i<player.maxHealth; i++) {
 		SDL_Rect tempRect = {24 + i * 10, screenHeight - 20 - 64 - 48, 6, 32};
 		SDL_SetRenderDrawColor(gRenderer, 60, 60, 60, 255);
 		SDL_RenderFillRect(gRenderer, &tempRect);
 	}
-	for (int i=0; i<10; i++) {
+	for (int i=0; i<player.health; i++) {
 		SDL_Rect tempRect = {24 + i * 10, screenHeight - 20 - 64 - 48, 6, 32};
 		SDL_SetRenderDrawColor(gRenderer, 255, 255, 255, 255);
 		SDL_RenderFillRect(gRenderer, &tempRect);
@@ -900,11 +978,11 @@ void PlayGame::RenderText(SDL_Renderer *gRenderer, LWindow &gWindow) {
 	}
 
 	// pirate count
-	tempss.str(std::string());
-	tempss << "x: " << player.x << " y: " << player.y;
-	gText.loadFromRenderedText(gRenderer, tempss.str().c_str(), {255, 255, 255, 255}, gFont26);
-	gText.setAlpha(255);
-	gText.render(gRenderer, 0,0, gText.getWidth(), gText.getHeight());
+	//tempss.str(std::string());
+	//tempss << "x: " << player.x << " y: " << player.y;
+	//gText.loadFromRenderedText(gRenderer, tempss.str().c_str(), {255, 255, 255, 255}, gFont26);
+	//gText.setAlpha(255);
+	//gText.render(gRenderer, 0,0, gText.getWidth(), gText.getHeight());
 
 
 
@@ -937,13 +1015,14 @@ void PlayGame::RenderText(SDL_Renderer *gRenderer, LWindow &gWindow) {
 
 		// Render hand debug info
 		std::stringstream tempss;
-		tempss << "place_type: "  << place_type   << ", id: " 		 << tl.id
-			   << ", layer: "     << tl.layer << ", editor: " 	 << editor
-			   << ", tl.multiW: " << tl.multiW    << ", tl.multiH: " << tl.multiH
+		tempss << "place_type: "  << place_type   	<< ", id: " 		 << tl.id
+			   << ", layer: "     << tl.layer 		<< ", editor: " 	 << editor
+			   << ", tl.multiW: " << tl.multiW    	<< ", tl.multiH: " << tl.multiH
 			   << ", tc.multiH: " << tl.multiH
-			   << ", tl.tilew: "  << tl.tilew     << ", tl.tileh: "  << tl.tileh
+			   << ", tl.tilew: "  << tl.tilew     	<< ", tl.tileh: "  << tl.tileh
 			   << ", tl.Count: "  << tl.tileCount
-			   << ", camlock: " << camlock << ", part.count: " << part.count;
+			   << ", camlock: " 	<< camlock 		<< ", part.count: " << part.count
+			   << ", pira.type: " 	<< pira.type;
 		gText.loadFromRenderedText(gRenderer, tempss.str().c_str(), {255,255,255}, gFont, 200);
 		gText.setAlpha(255);
 		gText.render(gRenderer, 0+screenWidth-gText.getWidth(), 100, gText.getWidth(), gText.getHeight());
@@ -1096,6 +1175,14 @@ void PlayGame::TilesUpdate() {
 	// If tile id goes above  <uniqueTiles>, loop around to 0
 	if (tl.id > tb.uniqueTiles) {
 		tl.id = 0;
+	}
+
+	// Pirates
+	if (pira.type < 0) {
+		pira.type = 1;
+	}
+	if (pira.type > 1) {
+		pira.type = 0;
 	}
 
 	// Loop around back to 3
@@ -1259,11 +1346,11 @@ void PlayGame::checkCollisionParticlePirate() {
 								part.count--;
 
 								// spawn damage text
-								std::stringstream tempss;
+								/*std::stringstream tempss;
 								tempss << particles[i].damage;
 								int randw = rand() % int(pirate[j].w);
 								tex.spawn(text, pirate[j].x+randw, pirate[j].y+pirate[j].h/2,
-										  0.0, -3.7, 255, tempss.str().c_str(), {255,255, 0});
+										  0.0, -3.7, 255, tempss.str().c_str(), {255,255, 0});*/
 							}
 
 							/*if (particles[i].x + particles[i].w > pirate[j].x && particles[i].x < pirate[j].x + pirate[j].w
@@ -1363,6 +1450,9 @@ void PlayGame::checkCollisionParticlePlayer(Particle particle[], Particle &part,
 							// remove particle
 							particles[i].alive = false;
 							part.count--;
+
+							// Hurt player
+							player.health -= particles[i].damage;
 						}
 
 						// particle collision with player using a BOX
@@ -1604,20 +1694,38 @@ void PlayGame::spawnAsteroidsNow2()
 	}*/
 
 	// Check if there is 0 Asteroids
-	if (pira.count <= 0){
-		if (player.increment < 50) {
-			player.increment += rand() % 3 + 3;
-		}
+	if (spaw.count <= 0 && pira.count <= 0){
+
+
+		// Next wave
 		player.wave++;
 
-		for (int i=0; i<40+player.increment; i++){
+		for (int i=0; i<1 + player.increment; i++){
 			int randx 		= rand() % map.w;
 			int randy 		= rand() % map.h;
-			//s_spawn.spawn(spawner, 0+randx, 0+randy, randw, randh);
+			spaw.spawn(spawner, 0+randx, 0+randy, 128, 128);
+			/*pira.spawn(pirate, map.x+randx, map.y+randy,
+					  80, 80, 128, 128,
+					  0.0, randDouble(3.6, 4.1),
+					  11, 57, 17);
+
 			pira.spawn(pirate, map.x+randx, map.y+randy,
 					  80, 80, 128, 128,
-					  0.0, randDouble(3.6, 4.1), 0, 100,
-					  11, 57, 17);
+					  0.0, randDouble(3.6, 4.1),
+					  11, 57, 17);*/
+
+
+			/*pira.spawn(pirate, map.x+randx, map.y+randy,
+					  80, 80, 160, 160,
+					  0.0, randDouble(3.6, 4.4),
+					  40, 57, 17);*/
+		}
+		// Increment number of pirates to be spawned
+		player.increment += rand() % 3 + 2;
+
+		// Max increment, after reaching 50, stop increasing the number of spawns
+		if (player.increment > 50) {
+			player.increment = 50;
 		}
 
 		// Give Player a 180 ms shield
@@ -1848,7 +1956,7 @@ void PlayGame::editorOnKeyDown( SDL_Keycode sym, Particle &part, Particle partic
 			//	tc.type++;
 			}else if (place_type==2) {
 			///////////////	obj.id++;
-			}else if (place_type==2) {
+			}else if (place_type==3) {
 				pira.type++;
 			}
 		}
@@ -2047,7 +2155,7 @@ void PlayGame::UpdateEditorTilePlacement() {
 						// normal enemy
 						pira.spawn(pirate, mx+camx-80/2, my+camy-80/2,
 								  80, 80, 160, 160,
-								  0.0, randDouble(3.6, 4.4), 0, 250,
+								  0.0, randDouble(3.6, 4.4),
 								  40, 57, 17);
 						// boss enemy
 						/*pira.spawn(pirate, mx+camx-250/2, my+camy-250/2,

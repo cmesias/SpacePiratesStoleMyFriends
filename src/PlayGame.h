@@ -169,6 +169,9 @@ public:	// Variables
 	// Render objects
 	void Render(SDL_Renderer *gRenderer, LWindow &gWindow);
 
+	// Render UI
+	void RenderUI(SDL_Renderer *gRenderer);
+
 	// Render debug information
 	void RenderDebug(SDL_Renderer *gRenderer);
 
