@@ -110,9 +110,6 @@ public:	// variables
 	double recoilX = 0;			 // gun recoil
 	double recoilY = 0;
 
-public: // Objective variables
-	int collectedKeys = 0;
-
 public: // Shooting variables
 
 	bool shooting = false;
@@ -180,6 +177,11 @@ public: // Player abilities
 	bool reload = false;		// reload
 	double reloadSpeed = 30.0;	// reload speed
 	double reloadTimer = 0.0;	// reload timer
+
+public:	// Player world interaction
+
+	int collectedKeys = 0;		// Keys collected
+	bool useKey;				// Used to interact with World Objects and doors
 
 public:	// controls
 	// Player controls
@@ -291,6 +293,17 @@ public:	// Accessor functions
 
 	// get center of cursor y-axis
 	float getCenterMouseY();
+
+public: // Mutator functions - physics
+
+	void AccelerateXWithvX();
+
+	void AccelerateYWithvY();
+
+	void DeccelerateXWithvX();
+
+	void DeccelerateYWithvY();
+
 };
 
 #endif /* LOCAL_PLAYERS_H_ */

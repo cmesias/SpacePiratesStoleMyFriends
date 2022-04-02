@@ -88,14 +88,14 @@ public:	// core game functions
 
 	void Update(Tile tile[], LWindow &gWindow, int newMx, int newMy, int mex, int mey, int camx, int camy, SDL_Rect rTiles[]);
 
-	bool checkCollisionRect( SDL_Rect a, SDL_Rect b );
-
-	void checkCollision(Tile tile[], float x, float y, int w, int h, float &coordinateXY, float &velocity);
-
 	void Render(SDL_Renderer *gRenderer, Tile tile[], int layer_dummy, int camx, int camy);
 
 	void RenderDebug(SDL_Renderer *gRenderer, Tile tile[], int newMx, int newMy, int mex, int mey,
-						 int camx, int camy, SDL_Rect rTiles[], int tileSize);
+						 int camx, int camy, SDL_Rect rTiles[]);
+
+	bool checkCollisionRect( SDL_Rect a, SDL_Rect b );
+
+	void checkCollision(Tile tile[], float x, float y, int w, int h, float &coordinateXY, float &velocity);
 
 public: // tile saving functions
 

@@ -82,7 +82,79 @@ void Particle::init(Particle particle[]) {
 	}
 }
 
+void Particle::Remove(Particle particle[], int i) {
+	particle[i].alive = false;
+	count--;;
+}
+
+void Particle::RemoveAll(Particle particle[]) {
+	count = 0;
+	for (int i = 0; i < max; i++) {
+		particle[i].alive 			= false;
+	}
+}
+
 void Particle::spawnParticleAngle(Particle particle[], std::string tag, int type,
+		float spawnX, float spawnY,
+		int spawnW, int spawnH,
+		double angle, double speed,
+		double damage,
+		SDL_Color color, int layer,
+		int angleSpe, int angleDir,
+		int alpha, int alphaspeed,
+		int deathTimer, int deathTimerSpeed,
+		bool sizeDeath, float deathSpe,
+		bool decay, float decaySpeed) {
+	for (int i = 0; i < max; i++)
+	{
+		if (!particle[i].alive)
+		{
+			particle[i].tag 			= tag;
+			particle[i].type 			= type;
+			particle[i].x 				= spawnX;
+			particle[i].y 				= spawnY;
+			particle[i].w 				= spawnW;
+			particle[i].h 				= spawnH;
+			particle[i].x2 				= spawnX + spawnW/2;
+			particle[i].y2 				= spawnY + spawnH/2;
+			particle[i].time 			= 0;
+			particle[i].timeri 			= 0;
+			particle[i].angle 			= angle;
+			particle[i].speed 			= speed;
+			particle[i].vX 				= (cos( (3.14159265/180)*(angle) ));
+			particle[i].vY 				= (sin( (3.14159265/180)*(angle) ));
+			particle[i].damage 			= damage;
+			//particle[i].x 				= spawnX + (rand() % 4 + 2 * (cos( (3.14159265/180)*(angle) )));
+			//particle[i].y 				= spawnY + (rand() % 4 + 2 * (sin( (3.14159265/180)*(angle) )));
+			//particle[i].x 				= spawnX + cos( (3.14159265/180)*(angle) );
+			//particle[i].y 				= spawnY + sin( (3.14159265/180)*(angle) );
+
+
+			particle[i].side 			= "";
+
+			particle[i].onScreen 		= false;
+			particle[i].collide 		= false;
+			particle[i].decay 			= decay;
+			particle[i].decaySpeed 		= decaySpeed;
+			particle[i].color 			= color;
+			particle[i].layer 			= layer;
+
+			particle[i].alphaspeed 		= alphaspeed;
+			particle[i].alpha 			= alpha;
+			particle[i].deathTimer 		= deathTimer;
+			particle[i].deathTimerSpeed = deathTimerSpeed;
+			particle[i].angleSpe		= angleSpe;
+			particle[i].angleDir		= angleDir;
+			particle[i].sizeDeath 		= sizeDeath;
+			particle[i].deathSpe 		= deathSpe;
+			particle[i].alive 			= true;
+			count++;
+			break;
+		}
+	}
+}
+
+void Particle::spawnBulletParticleAngle(Particle particle[], std::string tag, int type,
 		float spawnX, float spawnY,
 		int spawnW, int spawnH,
 		double angle, double speed,
@@ -281,8 +353,8 @@ void Particle::updateBulletParticles(Particle particle[], int mapX, int mapY, in
 				// Update particles angle based on its X and Y velocities
 				particle[i].angle = atan2 ( particle[i].vY, particle[i].vX) * 180 / 3.14159265;
 
-				// Particle map collision
-				if (particle[i].x+particle[i].w < mapX) {
+				// Particle map collision, loops around map
+				/*if (particle[i].x+particle[i].w < mapX) {
 					particle[i].x = mapX+mapW-particle[i].w;
 				}
 				if (particle[i].x > mapX+mapW) {
@@ -293,6 +365,24 @@ void Particle::updateBulletParticles(Particle particle[], int mapX, int mapY, in
 				}
 				if (particle[i].y > mapY+mapH) {
 					particle[i].y = mapY-particle[i].h;
+				}*/
+
+				// Particle map collision, destroys on edge of map
+				if (particle[i].x+particle[i].w < mapX) {
+					particle[i].alive = false;
+					count--;
+				}
+				if (particle[i].x > mapX+mapW) {
+					particle[i].alive = false;
+					count--;
+				}
+				if (particle[i].y+particle[i].h < mapY) {
+					particle[i].alive = false;
+					count--;
+				}
+				if (particle[i].y > mapY+mapH) {
+					particle[i].alive = false;
+					count--;
 				}
 
 				// Particle death
@@ -318,8 +408,8 @@ void Particle::updateBulletParticles(Particle particle[], int mapX, int mapY, in
 				// Particle death
 				particle[i].time += particle[i].deathTimerSpeed;
 
-				// Particle map collision
-				if (particle[i].x+particle[i].w < mapX) {
+				// Particle map collision, loops around map
+				/*if (particle[i].x+particle[i].w < mapX) {
 					particle[i].x = mapX+mapW-particle[i].w;
 				}
 				if (particle[i].x > mapX+mapW) {
@@ -330,6 +420,24 @@ void Particle::updateBulletParticles(Particle particle[], int mapX, int mapY, in
 				}
 				if (particle[i].y > mapY+mapH) {
 					particle[i].y = mapY-particle[i].h;
+				}*/
+
+				// Particle map collision, destroys on edge of map
+				if (particle[i].x+particle[i].w < mapX) {
+					particle[i].alive = false;
+					count--;
+				}
+				if (particle[i].x > mapX+mapW) {
+					particle[i].alive = false;
+					count--;
+				}
+				if (particle[i].y+particle[i].h < mapY) {
+					particle[i].alive = false;
+					count--;
+				}
+				if (particle[i].y > mapY+mapH) {
+					particle[i].alive = false;
+					count--;
 				}
 
 				// Particle death

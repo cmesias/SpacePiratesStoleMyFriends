@@ -26,6 +26,7 @@ public:
     //const int screenHeight = 1296;
 	const int screenWidth = 1920;
 	const int screenHeight = 1080;
+
 public:
 
 	// Check sollision

@@ -26,6 +26,8 @@
 
 //#include "Input.h"
 
+// TODO (2-1-2022) - barrelX and barrelY are incorrect, fix the correct correct coordinates for this and also update the firing of particles as well
+
 
 // Renders a circle
 int
@@ -261,7 +263,7 @@ void Players::reset(float spawnX, float spawnY, std::string newName, bool respaw
 	shieldTick			= 0;
 	shieldT				= 300;
 	shield				= true;
-
+	useKey 				= false;
 	controls 				= 0;
 	A 					= false;
 	B 					= false;
@@ -346,8 +348,11 @@ void Players::fire(Particle particle[], Particle &p_dummy, int mx, int my,
 	}
 
 	// Get player angle based on mouse coordinates
-	angle = atan2(my - y-h/2,mx - x-w/2);
+	int bmx = mx;
+	int bmy = my;
+	angle = atan2(bmy - y-h/2,bmx - x-w/2);
 	angle = angle * (180 / 3.1416);
+
 	//Set player angle max limits
 	if (angle < 0) {
 		angle = 360 - (-angle);
@@ -450,6 +455,9 @@ void Players::fire(Particle particle[], Particle &p_dummy, int mx, int my,
 						int followBloom = rand() % 2;
 						float angeledRecoil;
 
+						// TODO TEMPORARY DELETE THIS
+						followBloom = 0;
+
 						// Start shooting off-center of mouse (after 2 shots fired)
 						//if (recoilBloomAmount > 2) {
 						if (followBloom == 1) {
@@ -464,7 +472,7 @@ void Players::fire(Particle particle[], Particle &p_dummy, int mx, int my,
 							//angeledRecoil = angle + (recoilBloomAmount * dir);
 						}
 
-						// RNG - Shoot in the center every once in a while
+						// RNG - Shoot in the center
 						else {
 							angeledRecoil = angle;
 						}
@@ -474,10 +482,11 @@ void Players::fire(Particle particle[], Particle &p_dummy, int mx, int my,
 						////////////////////////////////////////////////////////////////////////////////////////////////
 
 						// spawn particle
-						p_dummy.spawnParticleAngle(particle, tag, 0,
+						p_dummy.spawnBulletParticleAngle(particle, tag, 0,
 								barrelX,
 								barrelY,
 								particleW, particleH,
+								//angeledRecoil, 65,
 								angeledRecoil, 65,
 							   25,
 							   {255,255,255}, 1,
@@ -1142,8 +1151,8 @@ void Players::RenderUI(SDL_Renderer *gRenderer,
 		double wedth = 21 * radianSin;
 		double hedth = 19 * radianCos;
 		SDL_SetRenderDrawColor(gRenderer, 255, 255, 255, 255);
-		SDL_RenderDrawLine(gRenderer, mx-16-wedth, my+hedth, mx+16-wedth, my+hedth);
-		SDL_RenderDrawLine(gRenderer, mx-wedth, my-16+hedth, mx-wedth, my+16+hedth);
+		SDL_RenderDrawLine(gRenderer, mx-20, my, mx+20 , my);
+		SDL_RenderDrawLine(gRenderer, mx, my-20, mx , my+20);
 
 		// Draw a circle bloom cross-hair
 		SDL_SetRenderDrawColor(gRenderer, 255, 255, 255, 255);
@@ -1350,14 +1359,11 @@ void Players::OnKeyDown( Players &player, SDL_Keycode sym )
 		player.controls = 0;
 		player.grenadeTrigger = true;
 		break;
-	case SDLK_h:
-		//debug = ( !debug );
+	case SDLK_e:					// Interaction hot-key to open doors
+		useKey = true;
 		break;
 	case SDLK_y:
 		player.camlocked = ( !player.camlocked );
-		break;
-	case SDLK_SPACE:
-		//player.initialshot = true;
 		break;
 	case SDLK_LSHIFT:
 		player.shift = true;
@@ -1380,6 +1386,9 @@ void Players::OnKeyUp( Players &player, SDL_Keycode sym )
 		break;
 	case SDLK_s:
 		player.movedown = false;
+		break;
+	case SDLK_e:					// Interaction hot-key to open doors
+		useKey = false;
 		break;
 	case SDLK_SPACE:
 		//player.initialshot 	= false;
@@ -1413,6 +1422,23 @@ void Players::mouseClickState(Players &player, SDL_Event &e){
 			player.thrust = false;
 		}
 	}
+}
+
+
+void Players::AccelerateXWithvX() {
+	x += vX;
+}
+
+void Players::AccelerateYWithvY() {
+	y += vY;
+}
+
+void Players::DeccelerateXWithvX() {
+	x -= vX;
+}
+
+void Players::DeccelerateYWithvY() {
+	y -= vY;
 }
 
 // Update XBOX 360 controls

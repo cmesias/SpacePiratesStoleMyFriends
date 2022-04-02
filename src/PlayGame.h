@@ -199,6 +199,7 @@ public: // Functions for Tiles
 	void TilesUpdate();
 
 public:	// Functions mixed with other classes
+
 	// Check collision between Particle & Asteroid
 	void checkCollisionPlayerAsteroid(Players &player, Asteroid asteroid[]);
 
@@ -214,11 +215,19 @@ public:	// Functions mixed with other classes
 	// Check collision between Particle & Player
 	void checkCollisionParticlePlayer(Particle particle[], Particle &part, Players &player);
 
+	// Check collision between certain Tiles & Player
+	void checkCollisionTilePlayer();
+
 	// Check collision between Grenade Particle & Enemies
 	void checkCollisionGrenadePlayer();
 
 	// Spawn Asteroids upon destroying all Asteroids
 	void spawnAsteroidsNow2();
+
+public:	// Boundary functions
+
+	// Make sure all objects on the map do not overextend over the map
+	void ClampObjectsToLevelSize(Particle &part, Particle particles[]);
 
 public:	// Functions that serve multiple purposes
 
@@ -229,13 +238,21 @@ public:	// Functions that serve multiple purposes
 
 public: // Saved data - variables
 
-	int playerStateLevel;			// Current stage level
+	int currentLevelStage;			// Current stage loaded
+	int playerStageLevel;			// Highest stage ever achieved
 	float spawnX = 0, spawnY = 0;	// This is where the player will spawn on the map
 	float doorX = 100, doorY = 100;	// The player needs to reach this door or tile to advance to the next level
 
-public: // Load data - spawn point for level
+public:
 
-	void loadSpawnPoint(int level);
+	// Save current level stage
+	void SaveFarthestLevelAchieved();
+
+	// Load farthest level achieved
+	void LoadFarthestLevelAchieved();
+
+	// Load spawn point
+	void loadSpawnPoint();
 
 public: // Render Editor UI
 
@@ -283,6 +300,12 @@ public: // Editor variables
 
 	// Clear current working level
 	void ClearLevel(Particle &part, Particle particles[]);
+
+	// Load a level
+	void LoadLevel(Particle &part, Particle particles[]);
+
+	// Reset Level
+	void ResetLevel(Particle &part, Particle particles[]);
 
 };
 

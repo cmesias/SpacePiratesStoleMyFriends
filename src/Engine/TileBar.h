@@ -16,14 +16,17 @@ class TileBar {
 public:
 
 	//// 37 w x 8 h =
-	const int tilesWidth = 8;
-	const int tilesHeight = 8;
-	const int tileW = 16;
-	const int tileH = 16;
+	const int amountOfTilesHoriztontally = 8;
+	const int amountOfTilesVertically = 37;
+	const int tileW = 128;
+	const int tileH = 128;
+
 	//const int uniqueTiles = 80;
 	const int uniqueTiles = 296;
 	int tileCount;
+
 public:
+
 	SDL_Rect clip;			//Tile clips
 	int x;					//Tile x position
 	int y;					//Tile y position

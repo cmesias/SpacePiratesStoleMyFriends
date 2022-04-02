@@ -201,6 +201,7 @@ void Tile::RemoveAll(Tile tile[]) {
 
 void Tile::SpawnMultiple(Tile tile[], int newMx, int newMy, int camx, int camy, SDL_Rect rTiles[]) {
 	Remove(tile, 0);
+
 	for (int j = 0; j < multiW; j++) {
 		for (int h = 0; h < multiH; h++) {
 			int x = int(newMx + j * tilew + camx);
@@ -208,6 +209,7 @@ void Tile::SpawnMultiple(Tile tile[], int newMx, int newMy, int camx, int camy, 
 			Spawn(tile, x, y, tilew, tileh, id, layer, rTiles[id]);
 		}
 	}
+
 }
 
 void Tile::Update(Tile tile[], LWindow &gWindow, int newMx, int newMy, int mex, int mey, int camx, int camy, SDL_Rect rTiles[]) {
@@ -307,189 +309,71 @@ void Tile::Update(Tile tile[], LWindow &gWindow, int newMx, int newMy, int mex, 
 	}
 }
 
-bool Tile::checkCollisionRect( SDL_Rect a, SDL_Rect b )
-{
-    //The sides of the rectangles
-    int leftA,   leftB;
-    int rightA,  rightB;
-    int topA, 	 topB;
-    int bottomA, bottomB;
-
-    //Calculate the sides of rect A
-    leftA 	= a.x;
-    rightA 	= a.x + a.w;
-    topA 	= a.y;
-    bottomA = a.y + a.h;
-
-    //Calculate the sides of rect B
-    leftB 	= b.x;
-    rightB 	= b.x + b.w;
-    topB 	= b.y;
-    bottomB = b.y + b.h;
-
-    //If any of the sides from A are outside of B
-    if( bottomA < topB )
-    {
-        return false;
-    }
-
-    if( topA > bottomB )
-    {
-        return false;
-    }
-
-    if( rightA < leftB )
-    {
-        return false;
-    }
-
-    if( leftA > rightB )
-    {
-        return false;
-    }
-
-    //If none of the sides from A are outside B
-    return true;
-}
-
-void Tile::checkCollision(Tile tile[], float x, float y, int w, int h, float &coordinateXY, float &velocity) {
-	SDL_Rect rectA;
-	rectA.x = x;
-	rectA.y = y;
-	rectA.w = w;
-	rectA.h = h;
-
-	bool moveBack;
-	moveBack = false;
-
-	for (int i = 0; i < max; i++) {
-		if (tile[i].alive){
-			if (tile[i].collide) {
-				SDL_Rect rectB;
-				rectB.x = tile[i].x;
-				rectB.y = tile[i].y;
-				rectB.w = tile[i].w;
-				rectB.h = tile[i].h;
-				if  ( checkCollisionRect( rectA, rectB )) {
-					moveBack = true;
-				}
-			}
-		}
-	}
-	if (moveBack){
-		coordinateXY -= velocity;
-	}
-
-	/*for (int i = 0; i < max; i++) {
-		if (tile[i].alive) {
-			if (tile[i].id == 9) {
-				if (tile[i].collide) {
-					if (y + h <= tile[i].y) {
-						if (x + w < tile[i].x || x > tile[i].x + tile[i].w) {
-							jumpstate = "falling";
-						}
-					}
-				}
-
-				//Collision Check - Spiked on top - touching body
-				if (x + w > tile[i].x && x < tile[i].x + tile[i].w &&
-					y + h > tile[i].y && y < tile[i].y + tile[i].h) {
-					tile[i].collide = true;
-				} else {
-					tile[i].collide = false;
-				}
-
-				if (tile[i].collide) {
-					if (tile[i].side == "left") {
-						x = tile[i].x - w;
-						if (vX > 0) {
-							vX = 0;
-						}
-					}
-					if (tile[i].side == "right") {
-						x = tile[i].x + tile[i].w;
-						if (vX < 0) {
-							vX = 0;
-						}
-					}
-					if (tile[i].side == "top") {
-						vY = 0.0;
-						y = tile[i].y - h;
-				        jumpstate = "ground";
-						jumps = 1;
-					}
-					if (tile[i].side == "down") {
-						y = tile[i].y + tile[i].h;
-						vY = 1;
-						jumpstate = "falling";
-					}
-				}
-				if (x + w <= tile[i].x) {
-					tile[i].side = "left";
-				}
-				if (y + h <= tile[i].y) {
-					tile[i].side = "top";
-				}
-				if (x >= tile[i].x + tile[i].w) {
-					tile[i].side = "right";
-				}
-				if (y >= tile[i].y + tile[i].h) {
-					tile[i].side = "down";
-				}
-			} // end checking tile-9
-		}
-	}*/
-}
-
 void Tile::Render(SDL_Renderer *gRenderer, Tile tile[], int layer_dummy, int camx, int camy) {
 	for (int i = 0; i < max; i++) {
-		if (tile[i].alive && tile[i].screen){
+		//if (tile[i].alive && tile[i].screen){
+		if (tile[i].alive) {
+
 			// Tile trasparency on Player collision
 			if (tile[i].layer != 0 && tile[i].player) {
 				//tile[i].alpha = 90;
-			}else{
+			} else {
 				//tile[i].alpha = 255;
 			}
+
 			// Render layer that Editor has selected
 			if (hideOtherLayers) {
 				if (layer == tile[i].layer) {
 				}
+			}
+
 			// Render all tiles
-			}else{
+			else {
 				if (layer_dummy == tile[i].layer) {
 					// Center Door Tile
 					if (tile[i].id > 63 && tile[i].id < 80) {
 						gTiles.setAlpha(tile[i].alpha);
-						gTiles.render(gRenderer, tile[i].x-7 - camx, tile[i].y-8 - camy, 32, 32, &tile[i].clip);
+						gTiles.render(gRenderer, tile[i].x - 7 - camx,
+								tile[i].y - 8 - camy, 32, 32, &tile[i].clip);
 					}
 					// Render every other tile normally
-					else{
+					else {
 						gTiles.setAlpha(tile[i].alpha);
-						gTiles.render(gRenderer, tile[i].x - camx, tile[i].y - camy, tile[i].w, tile[i].h, &tile[i].clip);
+						gTiles.render(gRenderer, tile[i].x - camx,
+								tile[i].y - camy, tile[i].w, tile[i].h,
+								&tile[i].clip);
 						// If destructible, render destructible Texture on Tiles
 						if (tile[i].destructible && tile[i].hits >= 0) {
-							gTileBreak.render(gRenderer, tile[i].x - camx, tile[i].y - camy, tile[i].w, tile[i].h, &rTileBreak[tile[i].hits]);
+							gTileBreak.render(gRenderer, tile[i].x - camx,
+									tile[i].y - camy, tile[i].w, tile[i].h,
+									&rTileBreak[tile[i].hits]);
 						}
 					}
 					/*SDL_Rect tempr = {tile[i].x - camx, tile[i].y - camy, tile[i].w, tile[i].h};
-					SDL_SetRenderDrawColor(gRenderer, 255, 255, 255, 255);
-					SDL_RenderDrawRect(gRenderer, &tempr);*/
+					 SDL_SetRenderDrawColor(gRenderer, 255, 255, 255, 255);
+					 SDL_RenderDrawRect(gRenderer, &tempr);*/
 					//if (player.y+player.h >= tile[i].y+tile[i].h) {
-						//gTiles.setAlpha(tile[i].alpha);
-						//gTiles.render(gRenderer, tile[i].x - camx, tile[i].y - camy, tile[i].w, tile[i].h, &tile[i].clip);
-						//player.render(gRenderer, camx, camy);
+					//gTiles.setAlpha(tile[i].alpha);
+					//gTiles.render(gRenderer, tile[i].x - camx, tile[i].y - camy, tile[i].w, tile[i].h, &tile[i].clip);
+					//player.render(gRenderer, camx, camy);
 					//}else{
-						//player.render(gRenderer, camx, camy);
-						//gTiles.setAlpha(tile[i].alpha);
-						//gTiles.render(gRenderer, tile[i].x - camx, tile[i].y - camy, tile[i].w, tile[i].h, &tile[i].clip);
+					//player.render(gRenderer, camx, camy);
+					//gTiles.setAlpha(tile[i].alpha);
+					//gTiles.render(gRenderer, tile[i].x - camx, tile[i].y - camy, tile[i].w, tile[i].h, &tile[i].clip);
 					//}
 				}
 			}
+
+			SDL_Rect tempr = { tile[i].x - camx, tile[i].y - camy, tile[i].w,
+					tile[i].h };
+			SDL_SetRenderDrawColor(gRenderer, 255, 0, 0, 255);
+			SDL_RenderDrawRect(gRenderer, &tempr);
+
 		}
 	}
 }
 
-void Tile::RenderDebug(SDL_Renderer *gRenderer, Tile tile[], int newMx, int newMy, int mex, int mey, int camx, int camy, SDL_Rect rTiles[], int tileSize){
+void Tile::RenderDebug(SDL_Renderer *gRenderer, Tile tile[], int newMx, int newMy, int mex, int mey, int camx, int camy, SDL_Rect rTiles[]){
 	// Render Tile info
 	for (int i = 0; i < max; i++) {
 		if (tile[i].alive && tile[i].screen){
@@ -636,6 +520,142 @@ void Tile::RenderDebug(SDL_Renderer *gRenderer, Tile tile[], int newMx, int newM
 			SDL_RenderDrawRect(gRenderer, &tempr);*/
 		}
 	}
+}
+
+
+
+bool Tile::checkCollisionRect( SDL_Rect a, SDL_Rect b )
+{
+    //The sides of the rectangles
+    int leftA,   leftB;
+    int rightA,  rightB;
+    int topA, 	 topB;
+    int bottomA, bottomB;
+
+    //Calculate the sides of rect A
+    leftA 	= a.x;
+    rightA 	= a.x + a.w;
+    topA 	= a.y;
+    bottomA = a.y + a.h;
+
+    //Calculate the sides of rect B
+    leftB 	= b.x;
+    rightB 	= b.x + b.w;
+    topB 	= b.y;
+    bottomB = b.y + b.h;
+
+    //If any of the sides from A are outside of B
+    if( bottomA < topB )
+    {
+        return false;
+    }
+
+    if( topA > bottomB )
+    {
+        return false;
+    }
+
+    if( rightA < leftB )
+    {
+        return false;
+    }
+
+    if( leftA > rightB )
+    {
+        return false;
+    }
+
+    //If none of the sides from A are outside B
+    return true;
+}
+
+void Tile::checkCollision(Tile tile[], float x, float y, int w, int h, float &coordinateXY, float &velocity) {
+	SDL_Rect rectA;
+	rectA.x = x;
+	rectA.y = y;
+	rectA.w = w;
+	rectA.h = h;
+
+	bool moveBack;
+	moveBack = false;
+
+	for (int i = 0; i < max; i++) {
+		if (tile[i].alive){
+			if (tile[i].collide) {
+				SDL_Rect rectB;
+				rectB.x = tile[i].x;
+				rectB.y = tile[i].y;
+				rectB.w = tile[i].w;
+				rectB.h = tile[i].h;
+				if  ( checkCollisionRect( rectA, rectB )) {
+					moveBack = true;
+				}
+			}
+		}
+	}
+	if (moveBack){
+		coordinateXY -= velocity;
+	}
+
+	/*for (int i = 0; i < max; i++) {
+		if (tile[i].alive) {
+			if (tile[i].id == 9) {
+				if (tile[i].collide) {
+					if (y + h <= tile[i].y) {
+						if (x + w < tile[i].x || x > tile[i].x + tile[i].w) {
+							jumpstate = "falling";
+						}
+					}
+				}
+
+				//Collision Check - Spiked on top - touching body
+				if (x + w > tile[i].x && x < tile[i].x + tile[i].w &&
+					y + h > tile[i].y && y < tile[i].y + tile[i].h) {
+					tile[i].collide = true;
+				} else {
+					tile[i].collide = false;
+				}
+
+				if (tile[i].collide) {
+					if (tile[i].side == "left") {
+						x = tile[i].x - w;
+						if (vX > 0) {
+							vX = 0;
+						}
+					}
+					if (tile[i].side == "right") {
+						x = tile[i].x + tile[i].w;
+						if (vX < 0) {
+							vX = 0;
+						}
+					}
+					if (tile[i].side == "top") {
+						vY = 0.0;
+						y = tile[i].y - h;
+				        jumpstate = "ground";
+						jumps = 1;
+					}
+					if (tile[i].side == "down") {
+						y = tile[i].y + tile[i].h;
+						vY = 1;
+						jumpstate = "falling";
+					}
+				}
+				if (x + w <= tile[i].x) {
+					tile[i].side = "left";
+				}
+				if (y + h <= tile[i].y) {
+					tile[i].side = "top";
+				}
+				if (x >= tile[i].x + tile[i].w) {
+					tile[i].side = "right";
+				}
+				if (y >= tile[i].y + tile[i].h) {
+					tile[i].side = "down";
+				}
+			} // end checking tile-9
+		}
+	}*/
 }
 
 void Tile::LoadData(Tile tile[], int level){
