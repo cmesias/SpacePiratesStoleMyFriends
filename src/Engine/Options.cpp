@@ -58,7 +58,7 @@ void Options::FreeAudioFiles() {
 
 void Options::saveCFG(){
 	/*std::ofstream fileSettings;
-	fileSettings.open( "cfg/config.cfg" );
+	fileSettings.open( "resource/cfg/config.cfg" );
 		std::stringstream tempss;
 		tempss << MASTER_VOL << " "
 			   << MUSIC_VOL  << " "
@@ -74,14 +74,14 @@ void Options::saveCFG(){
 // Load video configurations
 void Options::loadVideoCFG(){
 	// open config file
-	std::fstream fileSettings( "cfg/video.cfg" );
+	std::fstream fileSettings( "resource/cfg/video.cfg" );
 	if (fileSettings.is_open()) {
 		fileSettings >>  RESOLUTION >> ANTI_ALIAS >> VSYNC >> FULLSCREEN;
 		//std::cout << "Loaded video.cfg" << std::endl;
 	}else{
 		std::cout << "Error opening video.cfg." << std::endl;
 		std::cout << "\tCreating default video.cfg..." << std::endl;
-		std::ofstream newConfigFile("cfg/video.cfg");
+		std::ofstream newConfigFile("resource/cfg/video.cfg");
 		if (newConfigFile.is_open()) {
 			std::cout << "\t\tSuccessfully created video.cfg." << std::endl;
 			newConfigFile << "2 1 0 0";
@@ -103,14 +103,14 @@ void Options::loadVideoCFG(){
 // Load audio configurations
 void Options::loadAudioCFG(){
 	// open config file
-	std::fstream fileSettings( "cfg/audio.cfg" );
+	std::fstream fileSettings( "resource/cfg/audio.cfg" );
 	if (fileSettings.is_open()) {
 		fileSettings >>  MASTER_VOL >> MUSIC_VOL >> SFX_VOL;
 		//std::cout << "Loaded audio.cfg" << std::endl;
 	}else{
 		std::cout << "Error opening audio.cfg." << std::endl;
 		std::cout << "\tCreating default audio.cfg..." << std::endl;
-		std::ofstream newConfigFile("cfg/audio.cfg");
+		std::ofstream newConfigFile("resource/cfg/audio.cfg");
 		if (newConfigFile.is_open()) {
 			std::cout << "\t\tSuccessfully created audio.cfg." << std::endl;
 			newConfigFile << "100 128 128";
@@ -1254,7 +1254,7 @@ void Options::mouseReleased(LWindow &gWindow) {
 			MASTER_VOL		= bar[0].value;
 			MUSIC_VOL		= bar[1].value;
 			SFX_VOL			= bar[2].value;
-			temps = "cfg/audio.cfg";
+			temps = "resource/cfg/audio.cfg";
 			tempss << MASTER_VOL << " "
 				   << MUSIC_VOL  << " "
 				   << SFX_VOL;
@@ -1267,7 +1267,7 @@ void Options::mouseReleased(LWindow &gWindow) {
 			VSYNC			= bar[5].value;
 			FULLSCREEN		= bar[6].value;
 
-			temps = "cfg/video.cfg";
+			temps = "resource/cfg/video.cfg";
 			tempss << RESOLUTION << " "
 				   << ANTI_ALIAS << " "
 				   << VSYNC 	 << " "
