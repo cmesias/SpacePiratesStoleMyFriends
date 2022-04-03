@@ -19,17 +19,17 @@
 //			  After coding of Options Menu, the goal is to remove the Pause.cpp class.
 
 void Options::LoadAudioFiles() {
-	sRockBreak = Mix_LoadWAV("sounds/rock_break.wav");
-	sLazer = Mix_LoadWAV("sounds/snd_gun.wav");
-	sAtariBoom = Mix_LoadWAV("sounds/atari_boom.wav");
-	sGrenade = Mix_LoadWAV("sounds/snd_grenade.wav");
-	sGrenadeExplode = Mix_LoadWAV("sounds/snd_grenade_explode.wav");
-	sGrenadePickup = Mix_LoadWAV("sounds/snd_grenade_pickup.wav");
-	sPistolReload = Mix_LoadWAV("sounds/snd_reload_pistol.wav");
-	sPistolEmpty = Mix_LoadWAV("sounds/snd_pistol_empty.wav");
-	sPirateHurt = Mix_LoadWAV("sounds/cmesias/snd_pirate_hurt.wav");
+	sRockBreak = Mix_LoadWAV("resource/sounds/rock_break.wav");
+	sLazer = Mix_LoadWAV("resource/sounds/snd_gun.wav");
+	sAtariBoom = Mix_LoadWAV("resource/sounds/atari_boom.wav");
+	sGrenade = Mix_LoadWAV("resource/sounds/snd_grenade.wav");
+	sGrenadeExplode = Mix_LoadWAV("resource/sounds/snd_grenade_explode.wav");
+	sGrenadePickup = Mix_LoadWAV("resource/sounds/snd_grenade_pickup.wav");
+	sPistolReload = Mix_LoadWAV("resource/sounds/snd_reload_pistol.wav");
+	sPistolEmpty = Mix_LoadWAV("resource/sounds/snd_pistol_empty.wav");
+	sPirateHurt = Mix_LoadWAV("resource/sounds/cmesias/snd_pirate_hurt.wav");
 
-	sAmbientMusic = Mix_LoadMUS("sounds/ambient_space.mp3");
+	sAmbientMusic = Mix_LoadMUS("resource/sounds/ambient_space.mp3");
 }
 
 void Options::FreeAudioFiles() {

@@ -211,12 +211,12 @@ void PlayGame::Load(LWindow &gWindow, SDL_Renderer *gRenderer) {
 	gDoor.loadFromFile(gRenderer, 		"resource/gfx/cmesias/door.png");
 
 	// load fonts
-	gFont 	= TTF_OpenFont("fonts/Viga-Regular.ttf", 24);
-	gFont13 = TTF_OpenFont("fonts/Viga-Regular.ttf", 21);
-	gFont26 = TTF_OpenFont("fonts/Viga-Regular.ttf", 26);
+	gFont 	= TTF_OpenFont("resource/fonts/Viga-Regular.ttf", 24);
+	gFont13 = TTF_OpenFont("resource/fonts/Viga-Regular.ttf", 21);
+	gFont26 = TTF_OpenFont("resource/fonts/Viga-Regular.ttf", 26);
 
 	// load particle textures
-	gParticles.loadFromFile(gRenderer, "img/particle/particles.png");
+	gParticles.loadFromFile(gRenderer, "resource/gfx/particles.png");
 	gParticles.setBlendMode(SDL_BLENDMODE_ADD);
 
 	//Load texture target

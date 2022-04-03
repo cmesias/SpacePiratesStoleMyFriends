@@ -89,7 +89,7 @@ void Players::loadResources(SDL_Renderer* gRenderer){
 	spr_player_left_shoulder.loadFromFile(gRenderer, 	"resource/gfx/player/player_left_shoulder.png");
 	spr_player_backpack.loadFromFile(gRenderer, 		"resource/gfx/player/player_backpack.png");
 	spr_player_head.loadFromFile(gRenderer, 			"resource/gfx/player/player_head.png");
-	gShield.loadFromFile(gRenderer, "img/shield.png");
+	gShield.loadFromFile(gRenderer, "resource/gfx/shield.png");
 	for (int i=0; i<7; i++){setClips(rShield[i], i*48, 0, 48, 48);}
 }
 
@@ -147,7 +147,7 @@ void Players::loadScore(){
 	}
 
 	fileO.close();
-	std::cout << "DONE" << std::endl;
+	//std::cout << "DONE" << std::endl;
 }
 
 // Save high score

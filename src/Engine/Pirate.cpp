@@ -47,8 +47,8 @@ void Pirate::Init(Pirate pirate[]){
 }
 
 void Pirate::Load(SDL_Renderer* gRenderer){
-	gTexture.loadFromFile(gRenderer, "resource/gfx/player_clone.png");
-	gBoss.loadFromFile(gRenderer, "resource/gfx/boss.png");
+	gTexture.loadFromFile(gRenderer, "resource/gfx/pirate.png");
+	gBoss.loadFromFile(gRenderer, "resource/gfx/pirate_boss.png");
 }
 
 void Pirate::Free(){

@@ -31,12 +31,11 @@ void Particle::load(SDL_Renderer* gRenderer){
 	setClips(cParticles[3], 24, 0, 8, 8);
 	setClips(cParticles[4], 32, 0, 8, 8);
 	setClips(cParticles[5], 48, 0, 8, 8);
-	gParticles.loadFromFile(gRenderer, "img/particle/particles.png");
+	gParticles.loadFromFile(gRenderer, "resource/particles.png");
 	gParticles.setBlendMode(SDL_BLENDMODE_ADD);
 	spr_bullet.loadFromFile(gRenderer, "resource/gfx/player/player_bullet.png");
-	spr_bullet_blue.loadFromFile(gRenderer, "resource/gfx/player_clone_bullet.png");
+	spr_bullet_blue.loadFromFile(gRenderer, "resource/gfx/player/player_clone_bullet.png");
 	spr_grenade.loadFromFile(gRenderer, "resource/gfx/grenade.png");
-	sGrenadeExplode = Mix_LoadWAV("sounds/snd_grenade_explode.wav");
 }
 
 void Particle::free(){
@@ -44,8 +43,6 @@ void Particle::free(){
 	spr_bullet.free();
 	spr_bullet_blue.free();
 	spr_grenade.free();
-	Mix_FreeChunk(sGrenadeExplode);
-	sGrenadeExplode 		= NULL;
 }
 
 void Particle::init(Particle particle[]) {

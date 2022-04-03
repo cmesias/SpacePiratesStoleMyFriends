@@ -78,13 +78,13 @@ void Game::Load() {
 	applyOldAudioCFG();
 
 	// load fonts
-	gFont 	= TTF_OpenFont("fonts/Viga-Regular.ttf", 18);
-	gFont13 = TTF_OpenFont("fonts/Viga-Regular.ttf", 13);
-	gFont26 = TTF_OpenFont("fonts/Viga-Regular.ttf", 26);
+	gFont 	= TTF_OpenFont("resource/fonts/Viga-Regular.ttf", 18);
+	gFont13 = TTF_OpenFont("resource/fonts/Viga-Regular.ttf", 13);
+	gFont26 = TTF_OpenFont("resource/fonts/Viga-Regular.ttf", 26);
 
 	// load particle textures
 	setClips(cParticles, 32, 0, 8, 8);
-	gParticles.loadFromFile(gRenderer, "img/particle/particles.png");
+	gParticles.loadFromFile(gRenderer, "resource/gfx/particles.png");
 	gParticles.setBlendMode(SDL_BLENDMODE_ADD);
 }
 

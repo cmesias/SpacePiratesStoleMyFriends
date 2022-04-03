@@ -262,7 +262,7 @@ bool MainMenu::checkCollision(SDL_Rect a, SDL_Rect b){
 
 void MainMenu::load(SDL_Renderer *gRenderer) {
 	// Load Texture scenes
-	gMenuItems.loadFromFile(gRenderer, "resource/gfx/splash/main-menu.png");
+	gMenuItems.loadFromFile(gRenderer, "resource/gfx/splash/main_menu.png");
 	for (int i=0; i<5; i++) {
 		clip[i].x = 0;
 		clip[i].y = 0+i*96;
@@ -270,7 +270,7 @@ void MainMenu::load(SDL_Renderer *gRenderer) {
 		clip[i].h = 96;
 	}
 	// Load Menu starting coordinates
-	std::ifstream fileTileNumL("data/cfg/menu.cfg");
+	std::ifstream fileTileNumL("resource/data/cfg/menu.cfg");
 	if (fileTileNumL.is_open()) {
 		fileTileNumL >> x >> y >>
 					 w >> h>>
@@ -281,7 +281,7 @@ void MainMenu::load(SDL_Renderer *gRenderer) {
 
 void MainMenu::save() {
 	// Load Menu starting coordinates
-	std::ofstream fileTileNumL("data/cfg/menu.cfg");
+	std::ofstream fileTileNumL("resource/data/cfg/menu.cfg");
 	if (fileTileNumL.is_open()) {
 		fileTileNumL << x  << " " <<
 					    y  << " " <<

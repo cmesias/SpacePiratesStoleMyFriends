@@ -24,8 +24,6 @@ public:	// other variables
 	LTexture spr_grenade;
 	SDL_Rect cParticles[ 6 ];				// [0: Blue], [1: Green], [2: Orange], [3: Red], [4: White], [5: Yellow] Particle
 
-	Mix_Chunk *sGrenadeExplode 	= NULL;
-
 
 public:	// variables
 	float x2, y2;							// particle center
