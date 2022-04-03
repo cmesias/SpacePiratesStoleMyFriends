@@ -8,9 +8,21 @@
 #ifndef ENGINE_PIRATE_H_
 #define ENGINE_PIRATE_H_
 
-#include "Maps.h"
-#include "Players.h"
+#include <fstream>
+
+#include "LTexture.h"
+#include "LWindow.h"
+
 #include "Helper.h"
+
+#include "Particless.h"
+#include "Maps.h"
+
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
 
 class Pirate : public Helper {
 public:	// Media
@@ -46,9 +58,6 @@ public:	// Min variables
 
 	// these may be deprecated soon
 	double timer;			// Used for shooting
-	bool attacking;			// pirate attacking
-	double attackLength;	// Length of attack
-
 	float atkRange;			// Pirate attack range
 
 private:	// Shooting and Reloading animations
@@ -94,7 +103,7 @@ public:	// Main functions
 			   float angle, float speed,
 			   int distanceHeadIsFromCenterOfImage, int bulletW, int bulletH, int id = 0);
 	void update(Pirate pirate[], Particle particle[], Particle &p_dummy,
-				Map &map, Players &player,
+				Map &map, float targetCenterX, float targetCenerY, unsigned int &playerScore,
 				Mix_Chunk* sLazer, Mix_Chunk* sPistolReload,
 				int camx, int camy);
 	void render(SDL_Renderer* gRenderer, Pirate pirate[], int camx, int camy);

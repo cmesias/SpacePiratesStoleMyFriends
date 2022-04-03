@@ -55,6 +55,7 @@ public:	// Settings that can be changed by user
 	Mix_Chunk *sGrenadeExplode 	= NULL;
 	Mix_Chunk *sGrenadePickup 	= NULL;
 	Mix_Chunk *sPistolReload 	= NULL;
+	Mix_Chunk *sPistolEmpty 	= NULL;
 	Mix_Chunk *sPirateHurt 		= NULL;
 	// Audio, Video Settings
 	int MASTER_VOL;

@@ -7,22 +7,8 @@
 
 // the "../" in the beginning means that it goes back one folder
 //#include "../Engine/Players.h"
+
 #include "Players.h"
-
-#include <iostream>
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string>
-#include <sstream>
-#include <vector>
-#include <fstream>
-
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_net.h>
-#include <SDL2/SDL_image.h>
-#include <SDL2/SDL_mixer.h>
-#include <SDL2/SDL_mouse.h>
 
 //#include "Input.h"
 
@@ -325,7 +311,7 @@ void Players::applyShield(){
 // Player shoot
 void Players::fire(Particle particle[], Particle &p_dummy, int mx, int my,
 		 	 	   Mix_Chunk* sLazer, Mix_Chunk* sGrenade, Mix_Chunk* sGrenadePickup,
-				   Mix_Chunk* sPistolReload){
+				   Mix_Chunk* sPistolReload, Mix_Chunk* sPistolEmpty){
 
 	// Determine controls
 	if (controls==0){
@@ -413,7 +399,7 @@ void Players::fire(Particle particle[], Particle &p_dummy, int mx, int my,
 	if (trigger){
 		if (!reload){
 			// If there is more than 0 ammo in magazine
-			if (ammo > 0) {
+			//if (ammo > 0) {
 				if (!delay){
 					delay= true;
 					if (powerup == 1) {
@@ -421,102 +407,115 @@ void Players::fire(Particle particle[], Particle &p_dummy, int mx, int my,
 						// Shooting state, on
 						shooting = true;
 
-						// recoil of gun and shoulder animation
-						recoilX = 11 * radianCos;
-						recoilY = 11 * radianSin;
+						// If ammo greater than 0
+						if (ammo > 0) {
 
-						// count up total shots
-						totalShot++;
+							// Shake camera
+							this->playerShakeCamera = true;
 
-						// play audio
-						Mix_PlayChannel(1, sLazer, 0);
+							// Play shot SFX
+							Mix_PlayChannel(1, sLazer, 0);
 
-						////////////////////////////////////////////////////////////////////////////////////////////////
-						////////////////////////////////////////////////////////////////////////////////////////////////
-						//------------------- Determines clockwise or counter-close wise direction -------------------//
+							// recoil of gun and shoulder animation
+							recoilX = 11 * radianCos;
+							recoilY = 11 * radianSin;
 
-						// Random number of 0 or 1
-						int randir = rand() % 2;
-						int dir;
-						// Shoots a little counter-clockwise to cursor
-						if (randir == 0) { dir = -1; }
-						// Shoots a little clockwise to cursor
-						else { dir = 1; }
+							// count up total shots
+							totalShot++;
 
-						//------------------- Determines clockwise or counter-close wise direction -------------------//
-						////////////////////////////////////////////////////////////////////////////////////////////////
-						////////////////////////////////////////////////////////////////////////////////////////////////
+							////////////////////////////////////////////////////////////////////////////////////////////////
+							////////////////////////////////////////////////////////////////////////////////////////////////
+							//------------------- Determines clockwise or counter-close wise direction -------------------//
 
-						////////////////////////////////////////////////////////////////////////////////////////////////
-						////////////////////////////////////////////////////////////////////////////////////////////////
-						//------------------------- Sometimes the bullet will hit the center -------------------------//
+							// Random number of 0 or 1
+							int randir = rand() % 2;
+							int dir;
+							// Shoots a little counter-clockwise to cursor
+							if (randir == 0) { dir = -1; }
+							// Shoots a little clockwise to cursor
+							else { dir = 1; }
 
-						// Determine if the bullet will follow the bloom rules, or sometimes shoot in the center of your cursor
-						int followBloom = rand() % 2;
-						float angeledRecoil;
+							//------------------- Determines clockwise or counter-close wise direction -------------------//
+							////////////////////////////////////////////////////////////////////////////////////////////////
+							////////////////////////////////////////////////////////////////////////////////////////////////
 
-						// TODO TEMPORARY DELETE THIS
-						followBloom = 0;
+							////////////////////////////////////////////////////////////////////////////////////////////////
+							////////////////////////////////////////////////////////////////////////////////////////////////
+							//------------------------- Sometimes the bullet will hit the center -------------------------//
 
-						// Start shooting off-center of mouse (after 2 shots fired)
-						//if (recoilBloomAmount > 2) {
-						if (followBloom == 1) {
+							// Determine if the bullet will follow the bloom rules, or sometimes shoot in the center of your cursor
+							int followBloom = rand() % 2;
+							float angeledRecoil;
 
-							// Regular bloom direction. Option 1.
-							int value = recoilBloomAmount + 1;
-							float randRecoilSize = rand() % value + 1;
-							angeledRecoil = angle + (randRecoilSize * dir);
+							// TODO TEMPORARY DELETE THIS
+							followBloom = 0;
 
-							// Regular bloom direction. Option 2.
-							// ISSUE: as the bloom increases, direction of bullet shoots on the edges of the bloom amount
-							//angeledRecoil = angle + (recoilBloomAmount * dir);
+							// Start shooting off-center of mouse (after 2 shots fired)
+							//if (recoilBloomAmount > 2) {
+							if (followBloom == 1) {
+
+								// Regular bloom direction. Option 1.
+								int value = recoilBloomAmount + 1;
+								float randRecoilSize = rand() % value + 1;
+								angeledRecoil = angle + (randRecoilSize * dir);
+
+								// Regular bloom direction. Option 2.
+								// ISSUE: as the bloom increases, direction of bullet shoots on the edges of the bloom amount
+								//angeledRecoil = angle + (recoilBloomAmount * dir);
+							}
+
+							// RNG - Shoot in the center
+							else {
+								angeledRecoil = angle;
+							}
+
+							//------------------------- Sometimes the bullet will hit the center -------------------------//
+							////////////////////////////////////////////////////////////////////////////////////////////////
+							////////////////////////////////////////////////////////////////////////////////////////////////
+
+							// spawn particle
+							p_dummy.spawnBulletParticleAngle(particle, tag, 0,
+									barrelX,
+									barrelY,
+									particleW, particleH,
+									//angeledRecoil, 65,
+									angeledRecoil, 65,
+								   25,
+								   {255,255,255}, 1,
+								   1, 1,
+								   255, 0,
+								   100, 2,
+								   false, 0);
+
+							// Increase bloom amount every shot
+							if (recoilBloomAmount < recoilBloomAmountMax) {
+								recoilBloomAmount += 1;
+							}
+
+							// muzzle flash
+							renderFlash = true;
+
+							// subtract remaining grenades
+							ammo--;
+
+							// Check if we ran out of ammo
+							if (ammo <= 0) {
+								ammo = 0;
+
+								// start reloading ammo
+								//reload = true;
+							}
+
 						}
 
-						// RNG - Shoot in the center
+						// If no more ammo
 						else {
-							angeledRecoil = angle;
-						}
 
-						//------------------------- Sometimes the bullet will hit the center -------------------------//
-						////////////////////////////////////////////////////////////////////////////////////////////////
-						////////////////////////////////////////////////////////////////////////////////////////////////
-
-						// spawn particle
-						p_dummy.spawnBulletParticleAngle(particle, tag, 0,
-								barrelX,
-								barrelY,
-								particleW, particleH,
-								//angeledRecoil, 65,
-								angeledRecoil, 65,
-							   25,
-							   {255,255,255}, 1,
-							   1, 1,
-							   255, 0,
-							   100, 2,
-							   false, 0);
-
-						// Shake camera
-						this->playerShakeCamera = true;
-
-						// Increase bloom amount every shot
-						if (recoilBloomAmount < recoilBloomAmountMax) {
-							recoilBloomAmount += 1;
-						}
-
-						// muzzle flash
-						renderFlash = true;
-
-						// subtract remaining grenades
-						ammo--;
-
-						// Check if we ran out of ammo
-						if (ammo <= 0) {
-
-							// start reloading ammo
-							reload = true;
+							// Play empty pistol SFX
+							Mix_PlayChannel(1, sPistolEmpty, 0);
 						}
 					}
-				}
+				//}
 			}
 		}
 	}
@@ -803,7 +802,7 @@ void Players::update(Map &map,
 					LWindow gWindow, SDL_Renderer* gRenderer,
 					LTexture gText, TTF_Font *gFont13, SDL_Color color,
 					Mix_Chunk *sAtariBoom, Mix_Chunk* sLazer, Mix_Chunk* sGrenade,
-					Mix_Chunk* sGrenadePickup, Mix_Chunk* sPistolReload)
+					Mix_Chunk* sGrenadePickup, Mix_Chunk* sPistolReload, Mix_Chunk* sPistolEmpty)
 {
 	// Reset upon leaving pause menu
 	if (returned){
@@ -822,7 +821,7 @@ void Players::update(Map &map,
 		move(particle, p_dummy, mx+camx, my+camy);
 
 		// Player shoot
-		fire(particle, p_dummy, mx+camx, my+camy, sLazer, sGrenade, sGrenadePickup, sPistolReload);
+		fire(particle, p_dummy, mx+camx, my+camy, sLazer, sGrenade, sGrenadePickup, sPistolReload, sPistolEmpty);
 
 		// Player shield
 		if (shield){
@@ -1025,6 +1024,11 @@ void Players::update(Map &map,
 		recoilBloomAmount -= 1;
 		if (recoilBloomAmount < 0) { recoilBloomAmount=0; }
 	}
+
+	// Player health max
+	if (health > maxHealth) {
+		health = maxHealth;
+	}
 }
 
 // Render Player
@@ -1122,9 +1126,9 @@ void Players::RenderUI(SDL_Renderer *gRenderer,
 	gText.setAlpha(255);
 	// If player alive
 	if (this->alive) {
-		const float yOffsetBar = 30;
+		const float yOffsetBar = 60;
 		const float barHeight = 20;
-		const float barWidth = this->w*1.25;
+		const float barWidth = 135;
 		float uiX = this->x + this->w/2 - barWidth/2;
 		float uiY = this->y - barHeight - yOffsetBar;
 
@@ -1147,12 +1151,14 @@ void Players::RenderUI(SDL_Renderer *gRenderer,
 		double wedth = 21 * radianSin;
 		double hedth = 19 * radianCos;
 		SDL_SetRenderDrawColor(gRenderer, 255, 255, 255, 255);
-		SDL_RenderDrawLine(gRenderer, mx-20, my, mx+20 , my);
-		SDL_RenderDrawLine(gRenderer, mx, my-20, mx , my+20);
+		SDL_RenderDrawLine(gRenderer, mx-16-wedth, my+hedth, mx+16-wedth, my+hedth);
+		SDL_RenderDrawLine(gRenderer, mx-wedth, my-16+hedth, mx-wedth, my+16+hedth);
 
 		// Draw a circle bloom cross-hair
 		SDL_SetRenderDrawColor(gRenderer, 255, 255, 255, 255);
 		SDL_RenderDrawCircle(gRenderer, mx-wedth, my+hedth, recoilBloomAmount * 5);
+
+
 	}// If player alive
 
 	// If deathscreen
@@ -1196,6 +1202,9 @@ void Players::RenderUI(SDL_Renderer *gRenderer,
 		// Player Menu screen
 		}else{
 
+
+			if (!alive) {
+
 			// Render buttons: Play
 			SDL_SetRenderDrawColor(gRenderer, 0, 255, 0, 255);
 			SDL_RenderDrawRect(gRenderer, &continueButton[0]);
@@ -1215,9 +1224,6 @@ void Players::RenderUI(SDL_Renderer *gRenderer,
 			gText.render(gRenderer, continueButton[2].x+continueButton[2].w/2-gText.getWidth()/2,
 									 continueButton[2].y+continueButton[2].h/2-gText.getHeight()/2,
 									 gText.getWidth(), gText.getHeight());
-
-
-			if (!alive) {
 
 				// Render High Score text
 				for (int i=0; i<10; i++){

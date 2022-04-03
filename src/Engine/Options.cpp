@@ -26,6 +26,7 @@ void Options::LoadAudioFiles() {
 	sGrenadeExplode = Mix_LoadWAV("sounds/snd_grenade_explode.wav");
 	sGrenadePickup = Mix_LoadWAV("sounds/snd_grenade_pickup.wav");
 	sPistolReload = Mix_LoadWAV("sounds/snd_reload_pistol.wav");
+	sPistolEmpty = Mix_LoadWAV("sounds/snd_pistol_empty.wav");
 	sPirateHurt = Mix_LoadWAV("sounds/cmesias/snd_pirate_hurt.wav");
 
 	sAmbientMusic = Mix_LoadMUS("sounds/ambient_space.mp3");
@@ -40,6 +41,7 @@ void Options::FreeAudioFiles() {
 	Mix_FreeChunk(sGrenadeExplode);
 	Mix_FreeChunk(sGrenadePickup);
 	Mix_FreeChunk(sPistolReload);
+	Mix_FreeChunk(sPistolEmpty);
 	Mix_FreeChunk(sPirateHurt);
 	sRockBreak 		= NULL;
 	sAtariBoom 		= NULL;
@@ -48,6 +50,8 @@ void Options::FreeAudioFiles() {
 	sGrenade 		= NULL;
 	sGrenadeExplode = NULL;
 	sGrenadePickup = NULL;
+	sPistolReload = NULL;
+	sPistolEmpty = NULL;
 	sPirateHurt = NULL;
 }
 

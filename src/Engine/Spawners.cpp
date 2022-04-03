@@ -128,16 +128,10 @@ void Spawner::update(Spawner spawner[],
 				spawner[i].y+=spawner[i].reduction/2;
 				spawner[i].w -= spawner[i].reduction;
 				spawner[i].h -= spawner[i].reduction;
-				if (spawner[i].w <= 0){
+				if (spawner[i].w < 0){
 					spawner[i].spawnTimer 	= 0;
 					spawner[i].spawned 	   += 1;
 		            int randAngle 			= randDouble(0.0, 360.0);
-
-		            // Spawn asteroid
-		            /*a_dummy.spawnAsteroidAngle(asteroid, spawner[i].x-spawner[i].spawnedW/2,
-		            									 spawner[i].y-spawner[i].spawnedH/2,
-		            									 spawner[i].spawnedW, spawner[i].spawnedH,
-		    									 	 	 	 randAngle, 0.5);*/
 
 		            // Spawn pirate
 					pira.spawn(pirate, spawner[i].x-spawner[i].spawnedW/2,
@@ -148,7 +142,7 @@ void Spawner::update(Spawner spawner[],
 
 					// 10% chance to spawn a Boss pirate
 					int randNum = rand() % 100;
-					if (randNum < 10) {
+					if (randNum > 90) {
 						pira.spawn(pirate, mx+camx-(80*1.5)/2, my+camy-(80*1.5)/2,
 								  80*1.5, 80*1.5, 160*1.5, 160*1.5,
 								  0.0, randDouble(2, 2),

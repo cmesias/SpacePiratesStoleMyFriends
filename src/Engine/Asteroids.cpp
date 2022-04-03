@@ -21,10 +21,7 @@
 
 // Load asteroid resources
 void Asteroid::loadResources(SDL_Renderer* gRenderer){
-	gAsteroid.loadFromFile(gRenderer, "resource/gfx/asteroid.png");
-	setClips(rAsteroid[0], 0, 0, 48, 48);
-	setClips(rAsteroid[1], 48, 0, 96, 96);
-	setClips(rAsteroid[2], 144, 0, 128, 128);
+	gAsteroid.loadFromFile(gRenderer, "resource/gfx/gHealthPack.png");
 
 	//gAsteroid.setBlendMode(SDL_BLENDMODE_ADD);
 }
@@ -39,11 +36,11 @@ void Asteroid::freeResources(){
 void Asteroid::init(Asteroid asteroid[]) {
 	ASTEROIDS 	= 0;
 	asteroidsClear	= true;
-	for (int i = 0; i < 128; i++) {
+	for (int i = 0; i < max; i++) {
 		asteroid[i].x 				= 0;
 		asteroid[i].y 				= 0;
-		asteroid[i].w 				= 0;
-		asteroid[i].h 				= 0;
+		asteroid[i].w 				= 32;
+		asteroid[i].h 				= 27;
 		asteroid[i].vX 				= 0.0;
 		asteroid[i].vY 				= 0.0;
 		asteroid[i].speed 			= 0.0;
@@ -63,7 +60,7 @@ void Asteroid::init(Asteroid asteroid[]) {
 
 // Clear all asteroids
 void Asteroid::clear(Asteroid asteroid[]){
-	for (int i = 0; i < 128; i++) {
+	for (int i = 0; i < max; i++) {
 		asteroid[i].alive = false;
 	}
 	this->ASTEROIDS = 0;
@@ -74,21 +71,14 @@ void Asteroid::spawnAsteroidAngle(Asteroid asteroid[],
 		int x, int y,
 		int w, int h,
 		double angle, double speed) {
-	for (int i = 0; i < 128; i++)
+	for (int i = 0; i < max; i++)
 	{
 		if (!asteroid[i].alive)
 		{
-			asteroid[i].w 				= w;
-			asteroid[i].h 				= h;
-			if (w == 48){
-				asteroid[i].type 		= "small";
-			}else if (w==96){
-				asteroid[i].type 		= "medium";
-			}else if (w==128){
-				asteroid[i].type 		= "large";
-			}
 			asteroid[i].x 				= x;
 			asteroid[i].y 				= y;
+			asteroid[i].w 				= w;
+			asteroid[i].h 				= h;
 			asteroid[i].speed 			= speed;
 			asteroid[i].vX 				= cos( (3.14159265/180)*(angle) );
 			asteroid[i].vY 				= sin( (3.14159265/180)*(angle) );
@@ -111,7 +101,7 @@ void Asteroid::spawnAsteroidAngle(Asteroid asteroid[],
 }
 
 void Asteroid::spawnAsteroid(Asteroid asteroid[], int spawnx, int spawny, int w, int h, int targetx,int targety, float speed, std::string type) {
-	for (int i = 0; i < 128; i++) {
+	for (int i = 0; i < max; i++) {
 		if (!asteroid[i].alive) {
 			asteroid[i].health 			= 100;
 			asteroid[i].type 			= type;
@@ -143,7 +133,7 @@ void Asteroid::spawnAsteroid(Asteroid asteroid[], int spawnx, int spawny, int w,
 
 // [0]: remove asteroid,
 void Asteroid::configAsteroid(Asteroid asteroid[], int command, int mx, int my) {
-	for (int i = 0; i < 128; i++) {
+	for (int i = 0; i < max; i++) {
 		if (asteroid[i].alive) {
 			switch (command){
 				case 0:
@@ -159,7 +149,7 @@ void Asteroid::configAsteroid(Asteroid asteroid[], int command, int mx, int my) 
 
 void Asteroid::copyAsteroidOnMouse(Asteroid asteroid[], int &BLOCKX, int &BLOCKY, int &BLOCKW, int &BLOCKH) {
 	//COPY THE WIDTH/HEIGHT OF THE BLOCK YOU ARE CURRENTLY OVER
-	for (int i = 0; i < 128; i++) {
+	for (int i = 0; i < max; i++) {
 		if (asteroid[i].alive) {
 			if (asteroid[i].mouse){
 				BLOCKX = asteroid[i].x;
@@ -175,11 +165,11 @@ void Asteroid::copyAsteroidOnMouse(Asteroid asteroid[], int &BLOCKX, int &BLOCKY
 void Asteroid::updateAsteroid(Asteroid asteroid[],
 							  Particle particle[], Particle &p_dummy,
 							  bool alive, bool shield,
-							  unsigned int &score, int &mileScore,
-							  int &health, int mx, int my, int camx, int camy,
+							  int &mileScore,
+							  float &health, int mx, int my, int camx, int camy,
 							  int screenWidth, int screenHeight,
 							  int mapX, int mapY, int mapW, int mapH) {
-	for (int i = 0; i < 128; i++)
+	for (int i = 0; i < max; i++)
 	{
 		if (asteroid[i].alive)
 		{
@@ -219,53 +209,7 @@ void Asteroid::updateAsteroid(Asteroid asteroid[],
 			// Asteroid death
 			if (asteroid[i].health <= 0)
 			{
-				//Spawn explosion after asteroid death
-				/*for (double j=0.0; j< 360.0; j+=rand() % 10 + 10){
-					int rands = rand() % 3 + 2;
-					p_dummy.spawnParticleAngle(particle, "none", 2,
-									   asteroid[i].x+asteroid[i].w/2-rands/2,
-									   asteroid[i].y+asteroid[i].h/2-rands/2,
-									   rands, rands,
-									   j, randDouble(0.1, 1.5),
-									   0.0,
-									   {255, 255, 255, 255}, 1,
-									   1, 1,
-									   rand() % 100 + 150, rand() % 2 + 2,
-									   100, 0,
-									   false, 0);
-				}*/
-
-				if (asteroid[i].type=="large"){
-					for (int j = 0; j < 2; j++) {
-			            double randAngle 	= randDouble(0.0, 360.0);
-			            double radian		= (3.14159265/180)*(randAngle);
-			            double radianCos	= cos(radian);
-			            double radianSin	= sin(radian);
-			            spawnAsteroidAngle(asteroid, asteroid[i].x+asteroid[i].w/2-96/2 + (10 * radianCos),
-			            							 asteroid[i].y+asteroid[i].h/2-96/2 + (10 * radianSin),
-													 96, 96,
-			    									 randAngle, 1.3);
-					}
-					score += 20;
-					mileScore += 20;
-
-				}else if (asteroid[i].type=="medium"){
-					for (int j = 0; j < 2; j++) {
-			            double randAngle 	= randDouble(0.0, 360.0);
-			            double radian		= (3.14159265/180)*(randAngle);
-			            double radianCos	= cos(radian);
-			            double radianSin	= sin(radian);
-			            spawnAsteroidAngle(asteroid, asteroid[i].x+asteroid[i].w/2-48/2 + (10 * radianCos),
-			            							 asteroid[i].y+asteroid[i].h/2-48/2 + (10 * radianSin),
-													 48, 48,
-			    									 randAngle, 2.3);
-					}
-					score += 50;
-					mileScore += 50;
-				}else if (asteroid[i].type=="small"){
-					score += 100;
-					mileScore += 100;
-				}
+				// Remove asteroid
 				asteroid[i].alive = false;
 				ASTEROIDS--;
 			}
@@ -289,7 +233,7 @@ void Asteroid::updateAsteroid(Asteroid asteroid[],
 
 //Render asteroid
 void Asteroid::renderAsteroid(Asteroid asteroid[], int camx, int camy, SDL_Renderer* gRenderer) {
-	for (int i = 0; i < 128; i++) {
+	for (int i = 0; i < max; i++) {
 		if (asteroid[i].alive) {
 
 			//if (asteroid[i].onScreen){
@@ -301,15 +245,7 @@ void Asteroid::renderAsteroid(Asteroid asteroid[], int camx, int camy, SDL_Rende
 				gAsteroid.setColor(255, 255, 255);
 			}
 
-			if (asteroid[i].type=="large"){
-				gAsteroid.render(gRenderer, asteroid[i].x - camx, asteroid[i].y - camy, asteroid[i].w, asteroid[i].h, &rAsteroid[2], asteroid[i].angle);
-			}
-			if (asteroid[i].type=="medium"){
-				gAsteroid.render(gRenderer, asteroid[i].x - camx, asteroid[i].y - camy, asteroid[i].w, asteroid[i].h, &rAsteroid[1], asteroid[i].angle);
-			}
-			if (asteroid[i].type=="small"){
-				gAsteroid.render(gRenderer, asteroid[i].x - camx, asteroid[i].y - camy, asteroid[i].w, asteroid[i].h, &rAsteroid[0], asteroid[i].angle);
-			}
+			gAsteroid.render(gRenderer, asteroid[i].x - camx, asteroid[i].y - camy, asteroid[i].w, asteroid[i].h);
 
 
 			/*std::stringstream tempsi;

@@ -8,15 +8,36 @@
 #ifndef LOCAL_PLAYERS_H_
 #define LOCAL_PLAYERS_H_
 
-#include <SDL2/SDL_ttf.h>
 
-#include "Asteroids.h"
-#include "Enemies.h"
 #include "LTexture.h"
 #include "LWindow.h"
-#include "Maps.h"
+
+
 #include "Particless.h"
+#include "Asteroids.h"
+#include "Enemies.h"
+#include "Pirate.h"
+
+#include "Maps.h"
 #include "Helper.h"
+
+
+
+#include <iostream>
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string>
+#include <sstream>
+#include <vector>
+#include <fstream>
+
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_net.h>
+#include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL_image.h>
+#include <SDL2/SDL_mixer.h>
+#include <SDL2/SDL_mouse.h>
 
 //Player
 class Players: public Helper {
@@ -123,7 +144,7 @@ public: // Health variables
 
 	// Lives
 	int lives = 3;
-	int health;			// Default: 20
+	float health;			// Default: 20
 	int healthDecay;	// Default: 20
 	int maxHealth;		// Default: 20
 
@@ -229,7 +250,7 @@ public:	// functions
 	// Player shoot
 	void fire(Particle particle[], Particle &p_dummy, int mx, int my,
 			  Mix_Chunk* sLazer, Mix_Chunk* sGrenade, Mix_Chunk* sGrenadePickup,
-			  Mix_Chunk* sPistolReload);
+			  Mix_Chunk* sPistolReload, Mix_Chunk* sPistolEmpty);
 
 	// Player controls
 	void move(Particle particle[], Particle &p_dummy, int mx, int my);
@@ -243,7 +264,7 @@ public:	// functions
 				LWindow gWindow, SDL_Renderer* gRenderer,
 				LTexture gText, TTF_Font *gFont, SDL_Color color,
 				Mix_Chunk *sAtariBoom, Mix_Chunk* sLazer, Mix_Chunk* sGrenade,
-				Mix_Chunk* sGrenadePickup, Mix_Chunk* sPistolReload);
+				Mix_Chunk* sGrenadePickup, Mix_Chunk* sPistolReload, Mix_Chunk* sPistolEmpty);
 
 	void render(int camx, int camy, LWindow gWindow,
 				SDL_Renderer* gRenderer, int &PARTICLES);

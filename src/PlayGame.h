@@ -200,7 +200,7 @@ public: // Functions for Tiles
 
 public:	// Functions mixed with other classes
 
-	// Check collision between Particle & Asteroid
+	// Check collision between Player & Asteroid
 	void checkCollisionPlayerAsteroid(Players &player, Asteroid asteroid[]);
 
 	// Check collision between Particle & Asteroid
@@ -223,6 +223,9 @@ public:	// Functions mixed with other classes
 
 	// Spawn Asteroids upon destroying all Asteroids
 	void spawnAsteroidsNow2();
+
+	// Check if a pirates health goes to 0
+	void checkPirateDied();
 
 public:	// Boundary functions
 

@@ -1,9 +1,9 @@
+Player1 2560
+Player1 1300
 Player1 540
 AAA 460
 Player1 320
-AAA 0
-AAA 0
-AAA 0
+Player1 20
 AAA 0
 AAA 0
 AAA 0

@@ -15,7 +15,8 @@
 class Asteroid : public Helper {
 public:	// Media
 	LTexture gAsteroid;
-	SDL_Rect rAsteroid[3];
+
+	const int max = 128;
 public:
 	// Asteroid variables
 	float x,y,w,h;
@@ -59,8 +60,8 @@ public:
 	void updateAsteroid(Asteroid asteroid[],
 						Particle particle[], Particle &p_dummy,
 						bool alive, bool shield,
-						unsigned int &score, int &mileScore,
-						int &health, int mx, int my, int camx, int camy,
+						int &mileScore,
+						float &health, int mx, int my, int camx, int camy,
 						int screenWidth, int screenHeight,
 						int mapX, int mapY, int mapW, int mapH);
 

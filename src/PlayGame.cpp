@@ -648,7 +648,7 @@ void PlayGame::Update(LWindow &gWindow, SDL_Renderer *gRenderer) {
 
 		// Update Asteroids
 		aste.updateAsteroid(asteroid, particles, part,
-									  player.alive, player.shield, player.score, enem.mileScore, player.health,
+									  player.alive, player.shield, enem.mileScore, player.health,
 									  mx, my, camx, camy, gWindow.getWidth(), gWindow.getHeight(),
 									  map.x, map.y, map.w, map.h);
 
@@ -665,7 +665,7 @@ void PlayGame::Update(LWindow &gWindow, SDL_Renderer *gRenderer) {
 					  gWindow, gRenderer,
 					  gText, gFont26, {255,255,255},
 					  sAtariBoom, sLazer, sGrenade,
-					  sGrenadePickup, sPistolReload);
+					  sGrenadePickup, sPistolReload, sPistolEmpty);
 
 		// Shake camera if player wants to, but right not not used
 		if (player.getShakeCameraStatus()) {
@@ -676,7 +676,9 @@ void PlayGame::Update(LWindow &gWindow, SDL_Renderer *gRenderer) {
 		// If Player is alive
 		if (player.alive) {
 			// update pirates
-			pira.update(pirate, particles, part, map, player, sLazer, sPistolReload, camx, camy);
+			pira.update(pirate, particles, part, map,
+					player.x2, player.y2, player.score,
+					sLazer, sPistolReload, camx, camy);
 
 			// Update Enemy
 			enem.update(enemy,
@@ -687,8 +689,8 @@ void PlayGame::Update(LWindow &gWindow, SDL_Renderer *gRenderer) {
 						sLazer, sAtariBoom);
 		}
 
-		// Update Player & Asteroid collision check
-		//checkCollisionPlayerAsteroid(player, asteroid);
+		// Collision check: Player & Health packs
+		checkCollisionPlayerAsteroid(player, asteroid);
 
 		// Update Player Particle & Asteroid collision check
 		//checkCollisionParticleAsteroid(particles, part, asteroid, player);
@@ -705,7 +707,11 @@ void PlayGame::Update(LWindow &gWindow, SDL_Renderer *gRenderer) {
 		// Collision: Grenade Particle & Pirate
 		checkCollisionGrenadePlayer();
 
+		// Spawn spawners that spawn Pirates
 		spawnAsteroidsNow2();
+
+		// Check if Pirate's health is 0
+		checkPirateDied();
 
 		// Damage text: for pirate
 		tex.update(text);
@@ -1385,30 +1391,43 @@ void PlayGame::TilesUpdate() {
 
 // Check collision: Player and Asteroid
 void PlayGame::checkCollisionPlayerAsteroid(Players &player, Asteroid asteroid[]) {
-	/*// Player
+	// Player
 	if (player.alive) {
 		// Asteroid
-		for (int i = 0; i < 128; i++) {
+		for (int i = 0; i < aste.max; i++) {
 			if (asteroid[i].alive){
 				// Asteroid collision target
 				float bmx = player.x+player.w/2;
 				float bmy = player.y+player.h/2;
+				float bmx2 = asteroid[i].x+asteroid[i].w/2;
+				float bmy2 = asteroid[i].y+asteroid[i].h/2;
 
 				// Calculate distance
-				float distance = sqrt((bmx - asteroid[i].x - asteroid[i].w / 2)* (bmx - asteroid[i].x- asteroid[i].w / 2) +
-								      (bmy - asteroid[i].y - asteroid[i].h / 2)* (bmy - asteroid[i].y- asteroid[i].h / 2));
+				float distance = sqrt((bmx - bmx2)* (bmx - bmx2) +
+								      (bmy - bmy2)* (bmy - bmy2));
 
 				// Collision occurred
-				if (distance < player.w/2 + asteroid[i].w/2 && !player.shield){
-					asteroid[i].health -= asteroid[i].health;
-					player.health -= player.health;
+				if (distance < player.w/2 + asteroid[i].w/2)
+				{
+					// Remove health pack
+					asteroid[i].alive = false;
+					aste.ASTEROIDS--;
+
+					// Increase player health
+					player.health += 10;
+
+
+					// Player health max
+					if (player.health > player.maxHealth) {
+						player.health = player.maxHealth;
+					}
 
 					// play sound effect
 					Mix_PlayChannel(-1, sAtariBoom, 0);
 				}
 			}
 		}	// end Asteroid
-	}	// end Player*/
+	}	// end Player
 }
 
 // Check collision: Player Particle and Asteroid
@@ -1616,10 +1635,19 @@ void PlayGame::checkCollisionParticlePlayer(Particle particle[], Particle &part,
 						float bmy2 = particles[i].y + particles[i].h/2;
 						float distance = sqrt((bmx - bmx2) * (bmx - bmx2)+
 											  (bmy - bmy2) * (bmy - bmy2));
+
 						// collision occurred
-						if (distance < player.radius + particles[i].w/2) {
-							// reduce player health
-							//player.health -= particles[i].damage;
+						if (distance < player.radius + particles[i].w/2)
+						{
+							// Shake camera
+							ShakeCamera();
+
+							// Play impact sound effect
+							Mix_PlayChannel(-1, sPirateHurt, 0);
+
+							// Hurt player
+							player.health -= particles[i].damage;
+
 							// spawn blood particle effect
 							for (double j=0.0; j< 360.0; j+=rand() % 10 + 10){
 								int rands = rand() % 11 + 3;
@@ -1641,9 +1669,6 @@ void PlayGame::checkCollisionParticlePlayer(Particle particle[], Particle &part,
 							// remove particle
 							particles[i].alive = false;
 							part.count--;
-
-							// Hurt player
-							player.health -= particles[i].damage;
 						}
 
 						// particle collision with player using a BOX
@@ -1825,6 +1850,11 @@ void PlayGame::checkCollisionGrenadePlayer() {
 
 					// Particle death
 					if (particles[i].time > particles[i].deathTimer) {
+						// remove particle
+						particles[i].alive = false;
+						part.count--;
+
+						// Spawn VFX
 						for (int j=0; j<pira.max; j++) {
 							if (pirate[j].alive) {
 
@@ -1900,9 +1930,6 @@ void PlayGame::checkCollisionGrenadePlayer() {
 											   true, 0.11,
 											   true, randDouble(0.0001, 0.001));
 						}
-						// remove particle
-						particles[i].alive = false;
-						part.count--;
 					}
 				}	// end check part type == 3
 			}
@@ -2023,6 +2050,66 @@ void PlayGame::spawnAsteroidsNow2()
 		// Give Player a 180 ms shield
 		player.shield			= true;
 		player.shieldT			= 180;
+	}
+}
+
+void PlayGame::checkPirateDied()
+{
+	for (int i = 0; i < pira.max; i++)
+	{
+		if (pirate[i].alive)
+		{
+			// Pirate dead
+			if (pirate[i].health <= 0)
+			{
+
+				// If boss Pirate
+				if (pirate[i].type == 0)
+				{
+					// Increase Player score
+					player.score += 20;
+				}
+
+				// If boss Pirate
+				if (pirate[i].type == 1)
+				{
+					// Spawn health pack
+					float width = 32*2;
+					float height = 27*2;
+					float spawnX = pirate[i].x+pirate[i].w/2-width/2;
+					float spawnY = pirate[i].y+pirate[i].h/2-height/2;
+					aste.spawnAsteroidAngle(asteroid, spawnX, spawnY,
+							width, height,
+							0.0, 0.0);
+
+					// Increase Player score
+					player.score += 40;
+				}
+
+				// spawn blood particle effect
+				/*for (double h=0.0; h< 360.0; h+=rand() % 10 + 10){
+					int rands = rand() % 9 + 2;
+					float newX = pirate[i].x+pirate[i].w/2;
+					float newY = pirate[i].y+pirate[i].h/2;
+					p_dummy.spawnParticleAngle(particle, 2,
+										newX-rands/2,
+										newY-rands/2,
+									   rands, rands,
+									   h, randDouble(2.1, 7.1),
+									   0.0,
+									   {255, 255, 0, 255}, 1,
+									   1, 1,
+									   rand() % 100 + 150, rand() % 2 + 7,
+									   rand() % 50 + 90, 0,
+									   true, 0.11,
+									   true, randDouble(0.07, 0.69));
+				}*/
+
+				// Remove pirate
+				pirate[i].alive = false;
+				pira.count--;
+			}
+		}
 	}
 }
 

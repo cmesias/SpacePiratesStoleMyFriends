@@ -535,14 +535,14 @@ void Particle::updateStarParticles(Particle particle[], int mapX, int mapY, int 
 				// Particle death timer, Time
 				particle[i].time += particle[i].deathTimerSpeed;
 
+				// Particle death timer, transparency
+				particle[i].alpha -= particle[i].alphaspeed;
+
 				// Particle death, Time
 				if (particle[i].time > particle[i].deathTimer) {
 					particle[i].alive = false;
 					count--;
 				}
-
-				// Particle death timer, transparency
-				particle[i].alpha -= particle[i].alphaspeed;
 				if (particle[i].alpha < 0) {
 					particle[i].alive = false;
 					count--;
