@@ -41,6 +41,9 @@ public:
 	// Generate a random double number
 	double randDouble(double fMin, double fMax);
 
+	float getDistance( float x, float y, float x2, float y2 );
+
+
 	// Set Texture clips
 	void setClips(SDL_Rect &tempRect, int x, int y, int w, int h);
 

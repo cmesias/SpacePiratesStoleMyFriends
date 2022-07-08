@@ -8,25 +8,29 @@
 #ifndef LOCAL_TILEBAR_H_
 #define LOCAL_TILEBAR_H_
 
-#include "../Engine/LTexture.h"
-#include "../Engine/LWindow.h"
+#include "LWindow.h"
+#include "LTexture.h"
 
 //Tile Class
 class TileBar {
 public:
 
-	//// 37 w x 8 h =
-	const int amountOfTilesHoriztontally = 8;
-	const int amountOfTilesVertically = 37;
-	const int tileW = 128;
-	const int tileH = 128;
+	LTexture gTargetTexture;
 
-	//const int uniqueTiles = 80;
-	const int uniqueTiles = 296;
+	static const int TILES_UNIQUE = 168;	// Total number of Unique Tiles
+
+	const int HowManyTilesHorizontal = 21;
+	const int HowManyTilesVertical = 8;
+
+	// Texture clip sizes
+    static const int TilesCutSizeW   = 32;
+    static const int TilesCutSizeH = 32;
+
+	static const int tileSizeInWorldW = 32;
+	static const int tileSizeInWorldH = 32;
 	int tileCount;
 
 public:
-
 	SDL_Rect clip;			//Tile clips
 	int x;					//Tile x position
 	int y;					//Tile y position
@@ -54,41 +58,32 @@ public:
 
 	int MARGINX = 0;
 	int MARGINY = 0;
-	const int TILES_UNIQUE = 296;	// Total number of Unique Tiles
 	SDL_Rect rRect[6];				// Colors 64x64, [0: Green], [1: Orange], [2: White], [3: Blue], [4: Purple], [5: Dark Green fill, White border]
 	bool touching;					// Player is hovering over Tile Bar
 
-public:	// Core functions
-	void Load(SDL_Renderer *gRenderer);
-
-	void Init(TileBar tilebar[]);
-
-	void Free();
-
-public:	// Editor functions
-
-	void Spawn(TileBar tilebar[], int x, int y, int w, int h,
-								  int startx, int starty, int endW, int endH,
-								  std::string collision);
-
-	void SpawnMultiple(TileBar tilebar[]);
-
-	// Select a tile from the tilebar
-	void Select(TileBar tilebar[], int &tile_selection);
-
-	// Move the tilebar
-	void Move(TileBar tilebar[], std::string direction);
-
-public:	// Game-play functions
-
-	void Update(TileBar tilebar[], LWindow gWindow, int mx, int my, float camx, float camy);
-
-	void Render(SDL_Renderer *gRenderer, TileBar tilebar[], int tile_selection);
-
-public:	// Other functions
-
 	bool checkCollision(int x, int y, int w, int h, int x2, int y2, int w2, int h2);
 
+	void load(SDL_Renderer *gRenderer);
+
+	void init(TileBar tilebar[]);
+
+	void free();
+
+	void placeTile(TileBar tilebar[], int x, int y, int w, int h,
+									int startx, int starty, int endW, int endH,
+									std::string collision);
+
+	void placeTileBar(TileBar tilebar[]);
+
+	void update(TileBar tilebar[], LWindow gWindow, int mx, int my, float camx, float camy);
+
+	void selectBlock(TileBar tilebar[], int &tile_selection);
+
+	void selectBlockMultiple(TileBar tilebar[], int &tile_selection, int mx, int my);
+
+	void moveBarSelection(TileBar tilebar[], std::string direction);
+
+	void render(SDL_Renderer *gRenderer, TileBar tilebar[], int tile_selection);
 };
 
 #endif /* LOCAL_TILEBAR_H_ */

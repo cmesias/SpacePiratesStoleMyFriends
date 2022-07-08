@@ -108,11 +108,11 @@ void PlayGame::Init() {
 	playerStageLevel = -1;
 
 	// Tile class
-	tl.Init(tile);
+	tl.initTile(tile);
 
 	// Tilebar class
-	tb.Init(tilebar);
-	tb.SpawnMultiple(tilebar);
+	tb.init(tilebar);
+	tb.placeTileBar(tilebar);
 
 	// Pirate class
 	pira.Init(pirate);
@@ -212,6 +212,16 @@ void PlayGame::Load(LWindow &gWindow, SDL_Renderer *gRenderer) {
 	gBG.loadFromFile(gRenderer, 		"resource/gfx/bg.png");
 	gCircle.loadFromFile(gRenderer, 	"resource/gfx/circle.png");
 	gDoor.loadFromFile(gRenderer, 		"resource/gfx/cmesias/door.png");
+	gRect.loadFromFile(gRenderer, 		"resource/gfx/rect.png");
+
+	// Tile Jars
+	gJar.loadFromFile(gRenderer, "resource/gfx/jar_spritesheet.png");
+	rJar[0] = {64*0,0,64,64};
+	rJar[1] = {64*1,0,64,64};
+	rJar[2] = {64*2,0,64,64};
+	rJar[3] = {64*3,0,64,64};
+	rJar[4] = {64*4,0,64,64};
+	rJar[5] = {64*5,0,64,64};
 
 	// load fonts
 	gFont 	= TTF_OpenFont("resource/fonts/Viga-Regular.ttf", 24);
@@ -227,11 +237,8 @@ void PlayGame::Load(LWindow &gWindow, SDL_Renderer *gRenderer) {
 
 	// load media for other classes
 
-	// Tile class load
-	tl.Load(gRenderer);
-
-	// Tilebar class load
-	tb.Load(gRenderer);
+	tl.load(gRenderer, &gJar, &flowerTiles, &flowerTiles2);
+	tb.load(gRenderer);
 
 	// Pirate class load
 	pira.Load(gRenderer);
@@ -279,10 +286,9 @@ void PlayGame::Free() {
 	part.free();
 	enem.free();
 	spaw.free();
-	tl.Free();
-	tb.Free();
+	tl.free();
+	tb.free();
 	aste.freeResources();
-	tl.Free();
 	//tb.Free();
 }
 
@@ -330,6 +336,8 @@ void PlayGame::Show(LWindow &gWindow, SDL_Renderer *gRenderer, PlayGame::Result 
 		// get new mouse coordinates based on render size, and actual screen size
 		mx = (screenWidth*mx)/gWindow.getWidth();	// New mouse coordinates, no relation to camera
 		my = (screenHeight*my)/gWindow.getHeight();	// New mouse coordinates, no relation to camera
+		mex = (screenWidth*mx)/gWindow.getWidth();				// New mouse coordinates, no relation to camera
+		mey = (screenHeight*my)/gWindow.getHeight();				// New mouse coordinates, no relation to camera
 
 		//int mex = (1280*mx)/gWindow.getWidth();
 		//int mey = (720*my)/gWindow.getHeight();
@@ -338,8 +346,8 @@ void PlayGame::Show(LWindow &gWindow, SDL_Renderer *gRenderer, PlayGame::Result 
 		int clampSize = 32;									// Magnet pixel size
 		int remainderW = oldMX % clampSize;
 		int remainderH = oldMY % clampSize;
-		int newMx = mx - remainderW;						// New mouse coordinates, locked on x32 coordinates
-		int newMy = my - remainderH;						// New mouse coordinates, locked on x32 coordinates
+		newMx = mx - remainderW;						// New mouse coordinates, locked on x32 coordinates
+		newMy = my - remainderH;						// New mouse coordinates, locked on x32 coordinates
 
 		// Editor mouse coordinates
 		if (ctrl) {
@@ -629,9 +637,20 @@ void PlayGame::Show(LWindow &gWindow, SDL_Renderer *gRenderer, PlayGame::Result 
 // Update everything
 void PlayGame::Update(LWindow &gWindow, SDL_Renderer *gRenderer) {
 
+	// place_type
+	if (place_type > 4) {
+		place_type = 0;
+	}
 
 	// Update Asteroids: Wave re-spawn
 	if (!editor) {
+
+		// Update tiles
+		tl.updateTile(tile, gWindow, player.getX(), player.getY(), player.w, player.h,
+								   newMx+camx, newMy+camy,
+								   mex+camx, mey+camy,
+								   camx, camy,
+								   &rTiles[0]);
 
 		// Update tiles
 		TilesUpdate();
@@ -929,8 +948,17 @@ void PlayGame::RenderFG(SDL_Renderer *gRenderer, LWindow &gWindow) {
 void PlayGame::Render(SDL_Renderer *gRenderer, LWindow &gWindow) {
 
 	// Render Tiles
-	tl.Render(gRenderer, tile, 0, camx, camy);
-	tl.Render(gRenderer, tile, 1, camx, camy);
+	// Render tile, ground below ground
+	tl.renderTile(gRenderer, tile, -1, camx, camy, &rJar[0]);
+
+	// Render tile, ground
+	tl.renderTile(gRenderer, tile, 0, camx, camy, &rJar[0]);
+
+	// Render Tile in behind player sprite
+	tl.RenderBehindPlayer(gRenderer, tile, 1, camx, camy, &rTiles[0], &rJar[0]);
+
+	// Render Tile in behind player sprite
+	tl.RenderBehindPlayer(gRenderer, tile, 2, camx, camy, &rTiles[0], &rJar[0]);
 
 	// Render spawn point and exit door
 	{
@@ -961,6 +989,12 @@ void PlayGame::Render(SDL_Renderer *gRenderer, LWindow &gWindow) {
 	player.render(camx, camy, gWindow,
 				gRenderer, part.count);
 
+	// Render Tile on top of player
+	tl.RenderOnTopOfPlayer(gRenderer, tile, 1, camx, camy, &rTiles[0], &rJar[0]);
+
+	// Render Tile on top of player
+	tl.RenderOnTopOfPlayer(gRenderer, tile, 2, camx, camy, &rTiles[0], &rJar[0]);
+
 	// Render pirate's
 	pira.render(gRenderer, pirate, camx, camy);
 
@@ -968,12 +1002,11 @@ void PlayGame::Render(SDL_Renderer *gRenderer, LWindow &gWindow) {
 	part.renderStarParticle(particles, camx, camy, 1, gRenderer);
 	part.renderBulletParticle(particles, camx, camy, 1, gRenderer);
 
-	// Render tile, appliances
-	tl.Render(gRenderer, tile, 2, camx, camy);
-	tl.Render(gRenderer, tile, 3, camx, camy);
-	tl.Render(gRenderer, tile, 4, camx, camy);
-	tl.Render(gRenderer, tile, 5, camx, camy);
-	tl.Render(gRenderer, tile, 6, camx, camy);
+	// Render Tile, ceiling
+	tl.renderTile(gRenderer, tile, 3, camx, camy, &rJar[0]);
+	tl.renderTile(gRenderer, tile, 4, camx, camy, &rJar[0]);
+	tl.renderTile(gRenderer, tile, 5, camx, camy, &rJar[0]);
+	tl.renderTile(gRenderer, tile, 6, camx, camy, &rJar[0]);
 }
 
 void PlayGame::RenderUI(SDL_Renderer *gRenderer) {
@@ -986,6 +1019,9 @@ void PlayGame::RenderUI(SDL_Renderer *gRenderer) {
 			mx, my,
 			camx, camy,
 			pira.count);
+
+	// Render "E" prompt on doors to new areas
+	tl.RenderUI(gRenderer, tile, camx, camy);
 }
 
 void PlayGame::RenderDebug(SDL_Renderer *gRenderer)
@@ -1067,6 +1103,9 @@ void PlayGame::RenderDebug(SDL_Renderer *gRenderer)
 
 			}
 		}
+
+		// Render Tile debug
+		tl.renderTileDebug(gRenderer, tile, newMx, newMy, mex, mey, camx, camy, &rTiles[0]);
 
 		// Render Map Box
 		tempRect = {0-camx, 0-camy, tl.levelWidth, tl.levelHeight};
@@ -1232,8 +1271,7 @@ void PlayGame::RenderText(SDL_Renderer *gRenderer, LWindow &gWindow) {
 			/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 			//------------------------------------- Render what's in Editors hand -------------------------------------//
 			if (place_type == 0) {
-				// Render Tile debug
-				tl.RenderDebug(gRenderer, tile, mouseX, mouseY, mx, my, camx, camy, &rTiles[0]);
+				tl.RenderHand(gRenderer, tile, newMx, newMy, mex, mey, camx, camy, &rTiles[0]);
 			}else if (place_type == 1) {
 
 				// Render tile in hand
@@ -1288,7 +1326,69 @@ void PlayGame::RenderText(SDL_Renderer *gRenderer, LWindow &gWindow) {
 		}
 
 		// Render Tile Bar
-		tb.Render(gRenderer, tilebar, tl.id);
+		tb.render(gRenderer, tilebar, tl.id);
+
+		// Render confirmation prompt
+		if (promptConfirm) {
+
+			// Render box around text
+
+			// Render: "Are you sure you want to save?"
+			std::stringstream text;
+			text << "Are you sure you want to ";
+			if (promptType == 0)
+				text << "Load level " << "?";
+			else
+				text << "Save level " << "?";
+
+			// Prompt position
+			int promptX;
+			int promptY;
+			gRect.setAlpha(200);
+			gRect.setColor(240, 159, 80);
+
+			// Prompt
+			{
+				// Get text
+				gText.loadFromRenderedText(gRenderer, text.str().c_str(), {255,255,255}, gFont13);
+				promptX = screenWidth * 0.5 - gText.getWidth()/2;
+				promptY = screenHeight * 0.90 - gText.getHeight();
+
+				// Render BG texture
+				gRect.render(gRenderer, promptX-25, promptY-20, gText.getWidth()+50, gText.getHeight()+40);
+
+				// Render text
+				gText.render(gRenderer, promptX, promptY, gText.getWidth(), gText.getHeight());
+			}
+
+			// Render "YES"
+			{
+				// Get text
+				gText.loadFromRenderedText(gRenderer, "YES", {0,144,0}, gFont13);
+				promptX = screenWidth * 0.25 - gText.getWidth()/2;
+				promptY = screenHeight * 0.50 - gText.getHeight()/2;
+
+				// Render BG texture
+				gRect.render(gRenderer, promptX-screenWidth/4, promptY-(screenWidth/3)/2, screenWidth/2, screenWidth/3);
+
+				// Render text
+				gText.render(gRenderer, promptX, promptY, gText.getWidth(), gText.getHeight());
+			}
+
+			// Render "NO"
+			{
+				// Get text
+				promptX = screenWidth * 0.75 - gText.getWidth()/2;
+				promptY = screenHeight * 0.50 - gText.getHeight()/2;
+				gText.loadFromRenderedText(gRenderer, "NO", {180,0,0}, gFont13);
+
+				// Render BG texture
+				gRect.render(gRenderer, promptX-screenWidth/4, promptY-(screenWidth/3)/2, screenWidth/2, screenWidth/3);
+
+				// Render text
+				gText.render(gRenderer, promptX, promptY, gText.getWidth(), gText.getHeight());
+			}
+		}
 	}
 	//----------------------------------------------------- Render Editor's Hand -------------------------------------------//
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1300,7 +1400,8 @@ void PlayGame::RenderHand(SDL_Renderer *gRenderer) {
 	if (debug){
 		if (place_type == 0) {
 			// Render Tile debug
-			tl.RenderDebug(gRenderer, tile, mouseX, mouseY, mx, my, camx, camy, &rTiles[0]);
+			tl.renderTileDebug(gRenderer, tile, newMx, newMy, mex, mey, camx, camy, &rTiles[0]);
+
 		}
 		// Render " " class objects in hand
 		/*else if (place_type == 1) {
@@ -1357,23 +1458,19 @@ void PlayGame::RenderHand(SDL_Renderer *gRenderer) {
 
 void PlayGame::TilesUpdate() {
 
-	// If tile layer goes below 0, loop around to 6
-	if (tl.layer < 0) {
+	// Tiles: layers
+	if (tl.layer < -1) {
 		tl.layer = 6;
 	}
-
-	// If tile layer goes above 6, loop around to 0
 	if (tl.layer > 6) {
-		tl.layer = 0;
+		tl.layer = -1;
 	}
 
-	// If tile id goes below 0, loop around to <uniqueTiles>
+	// Tiles: id
 	if (tl.id < 0) {
-		tl.id = tb.uniqueTiles;
+		tl.id = tb.TILES_UNIQUE;
 	}
-
-	// If tile id goes above  <uniqueTiles>, loop around to 0
-	if (tl.id > tb.uniqueTiles) {
+	if (tl.id > tb.TILES_UNIQUE) {
 		tl.id = 0;
 	}
 
@@ -1693,7 +1790,7 @@ void PlayGame::checkCollisionParticlePlayer(Particle particle[], Particle &part,
 
 
 void PlayGame::checkCollisionTilePlayer() {
-
+/*
 	//////////////////////////////////////////////////////////////////////////////////////////
 	//////////////////////////////////////////////////////////////////////////////////////////
 	//-------------------------------- Collision with Tiles --------------------------------//
@@ -1797,7 +1894,7 @@ void PlayGame::checkCollisionTilePlayer() {
 	//////////////////////////////////////////////////////////////////////////////////////////
 
 	// Update player stuff that need to be updated after
-	//player.UpdateAfter();
+	//player.UpdateAfter();*/
 }
 
 void PlayGame::checkCollisionGrenadePlayer() {
@@ -2266,27 +2363,27 @@ void PlayGame::editorOnKeyDown( SDL_Keycode sym, Particle &part, Particle partic
 	case SDLK_RIGHT:			// camera right
 		camRight = true;
 		break;
-	case SDLK_b:				// Change Tile collision properties
-		if (shift) {
-			tl.ChangeCollision(tile, 0);
-		}else{
-			tl.ChangeCollision(tile, 1);
+	case SDLK_COMMA:				// Change Tile collision properties
+		if (place_type == 0 ) {
+			tl.changeTileCollision(tile);
 		}
 		break;
 	case SDLK_v:				// Change Tile destructible properties
 		if (shift) {
-			tl.ChangeDestructable(tile, 0);
+			//tl.ChangeDestructable(tile, 0);
 		}else{
-			tl.ChangeDestructable(tile, 1);
+			//tl.ChangeDestructable(tile, 1);
 		}
 		break;
 	case SDLK_x:				// Save spawn point
 		spawnX = mouseX+camx;
 		spawnY = mouseY+camy;
 		break;
-	case SDLK_u:				// Spawn Tile as a collision or not
-		tl.collide = (!tl.collide);
+	case SDLK_k:{								// Change collisionTile, if we should place a Tile with Collision
+
+		tl.collisionTile = (!tl.collisionTile);
 		break;
+	}
 	case SDLK_j:				// Spawn Tile as a destructible or not
 		tl.destructible = (!tl.destructible);
 		break;
@@ -2296,37 +2393,43 @@ void PlayGame::editorOnKeyDown( SDL_Keycode sym, Particle &part, Particle partic
 		break;
 	case SDLK_w:
 		if (shift) {
-			tb.Move(tilebar, "up");
+			tb.moveBarSelection(tilebar, "up");
+		}else{
+			camUp = true;
 		}
 		break;
 	case SDLK_s:
 		if (shift) {
-			tb.Move(tilebar, "down");
+			tb.moveBarSelection(tilebar, "down");
+		}else{
+			camDown = true;
 		}
 		break;
 	case SDLK_a:
 		if (shift) {
-			tb.Move(tilebar, "left");
+			tb.moveBarSelection(tilebar, "left");
+		}else{
+			camLeft = true;
 		}
 		break;
 	case SDLK_d:
 		if (shift) {
-			tb.Move(tilebar, "right");
+			tb.moveBarSelection(tilebar, "right");
+		}else{
+			camRight = true;
 		}
 		break;
 	case SDLK_q:								// Change place type (i.e. Tiles or Collision Tiles)
 		if (shift) {
 			place_type--;
-			if (place_type < 0) { place_type = 3;}
 		}else{
 			place_type++;
-			if (place_type > 3) { place_type = 0;}
 		}
 		break;
 	case SDLK_TAB:								// Toggle hide other layers
 		tl.hideOtherLayers = (!tl.hideOtherLayers);
 		break;
-	case SDLK_k:								// Change clamp size
+	/*case SDLK_k:								// Change clamp size
 		if (shift){
 			if (clampSize > 2) {
 				clampSize -=2;
@@ -2334,7 +2437,7 @@ void PlayGame::editorOnKeyDown( SDL_Keycode sym, Particle &part, Particle partic
 		}else{
 			clampSize+=2;
 		}
-		break;
+		break;*/
 	case SDLK_l:								// Change place_type Layer
 		if (shift) {
 			if (place_type==0) {
@@ -2374,17 +2477,19 @@ void PlayGame::editorOnKeyDown( SDL_Keycode sym, Particle &part, Particle partic
 		}
 		break;
 	case SDLK_PERIOD:							// Tile, change Layer
-		if (shift)
-			tl.ChangeLayer(tile, -1);
-		else
-			tl.ChangeLayer(tile, 1);
+		if (place_type == 0 ) {
+			if (shift)
+				tl.changeTileLayer(tile, -1);
+			else
+				tl.changeTileLayer(tile, 1);
+		}else if (place_type == 1 ) {
+
+		}
 		break;
 	case SDLK_c:								// Tile, copy Tile
 		if (editor) {
 			if (place_type == 0 ) {
-				tl.Copy(tile);
-			}else if (place_type == 1) {
-			//	tc.copy(tilec);
+				tl.copyTile(tile);
 			}
 		}
 		break;
@@ -2546,41 +2651,47 @@ void PlayGame::UpdateEditorTilePlacement() {
 	// Editor
 	if (editor) {
 		if (leftClick) {
-			/* If not on Tile-bar, place other tiles */
+			// If not on Tile-bar, place other tiles
 			if (!tb.touching) {
-				//if (editor) {
 
-					// Spawn a tile
-					if (place_type == 0) {
-						tl.SpawnMultiple(tile, mouseX, mouseY, camx, camy, &rTiles[0]);
-					}
+				// Remove Tiles
+				if (place_type == 0) {
 
-					// Spawn collision tiles (redacted)
-					else if (place_type == 1) {
-						// tc.spawn(tilec, mouseX, mouseY, camx, camy);
-					}
+					// Remove Tiles if left clicking, "0" in second argument
+					// Also removes them by how many Tiles we are going to place horiz. and verti.
+					tl.removeTile(tile, 0);
+				}
 
-					// Spawn items
-					else if (place_type == 2) {
-						// obj.Spawn(item, mouseX+camx, mouseY+camy, 16, 16);
-					}
+				// Spawn collision tiles (redacted)
+				else if (place_type == 1) {
+					// tc.spawn(tilec, mouseX, mouseY, camx, camy);
+				}
 
-					// Spawn pirates
-					else if (place_type == 3) {
-						// normal enemy
-						pira.spawn(pirate, mx+camx-80/2, my+camy-80/2,
-								  80, 80, 160, 160,
-								  0.0, randDouble(3.6, 4.4),
-								  40, 57, 17);
-						// boss enemy
-						/*pira.spawn(pirate, mx+camx-250/2, my+camy-250/2,
-								  250, 250, 512, 512,
-								  0.0, randDouble(3.6, 4.4), 1, 1000,
-								  119, 256, -49);*/
-					}
-				//}
+				// Spawn items
+				else if (place_type == 2) {
+					// obj.Spawn(item, mouseX+camx, mouseY+camy, 16, 16);
+				}
+
+				// Spawn pirates
+				else if (place_type == 3) {
+					// normal enemy
+					pira.spawn(pirate, mx+camx-80/2, my+camy-80/2,
+							  80, 80, 160, 160,
+							  0.0, randDouble(3.6, 4.4),
+							  40, 57, 17);
+					// boss enemy
+					/*pira.spawn(pirate, mx+camx-250/2, my+camy-250/2,
+							  250, 250, 512, 512,
+							  0.0, randDouble(3.6, 4.4), 1, 1000,
+							  119, 256, -49);*/
+				}
 			}else{
-				tb.Select(tilebar, tl.id);
+				if (shift) {
+					tb.selectBlockMultiple(tilebar, tl.id, mex, mey);
+				// Pen Tool, select a Tile from the TileBar
+				}else{
+					tb.selectBlock(tilebar, tl.id);
+				}
 			}
 		}
 		if (rightClick) {
@@ -2590,7 +2701,7 @@ void PlayGame::UpdateEditorTilePlacement() {
 
 					// Remove  tile
 					if (place_type == 0) {
-						tl.Remove(tile, 1);
+						tl.spawnTile(tile, newMx, newMy, camx, camy, &rTiles[0]);
 					}
 
 					// Remove collision tile
@@ -2609,7 +2720,8 @@ void PlayGame::UpdateEditorTilePlacement() {
 					}
 				}
 			}else{
-				tb.Select(tilebar, tl.id);
+				// Pen Tool, select a Tile from the TileBar
+				tb.selectBlock(tilebar, tl.id);
 			}
 		}
 	}
@@ -2746,6 +2858,15 @@ void PlayGame::ClearLevel(Particle &part, Particle particles[]) {
 
 void PlayGame::LoadLevel(Particle &part, Particle particles[]) {
 
+	// Remove everything
+	{
+		// Remove particles tiles
+		part.RemoveAll(particles);
+
+		// Remove textured tiles
+		tl.RemoveAll(tile);
+	}
+
 	// Reset Player movements and direction
 	player.collectedKeys = 0;
 	player.health = 200;
@@ -2761,11 +2882,36 @@ void PlayGame::LoadLevel(Particle &part, Particle particles[]) {
 	// Remove Particles
 	part.RemoveAll(particles);
 
-	// Load Tiles
-	tl.LoadData(tile, currentLevelStage);
-
 	// Load Monsters
 	pira.LoadData(pirate, playerStageLevel);
+
+	// Set file path and name
+	std::stringstream tempss;
+	tempss << "data/maps/";
+	tempss << "Level";
+	tempss << 1;
+	tempss << ".mp";
+	std::fstream fileTileDataL(tempss.str().c_str());
+
+	// While file is open
+	while( fileTileDataL.good() )
+	{
+		// Load Tile data
+		tl.LoadData(tile, fileTileDataL);
+
+		// Load Player spawn point
+		fileTileDataL >>  this->spawnX >> this->spawnY;
+
+		// Load map size
+		fileTileDataL >>  map.w >> map.h;
+
+		// Break out of file
+		break;
+	}
+	fileTileDataL.close();
+
+
+
 
 	// Load level spawn point
 	//loadSpawnPoint();

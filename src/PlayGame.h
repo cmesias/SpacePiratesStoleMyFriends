@@ -8,6 +8,7 @@
 #ifndef PLAYGAME_H_
 #define PLAYGAME_H_
 
+#include "Engine/TextNFont.h"
 #include "Engine/Asteroids.h"
 #include "Engine/Enemies.h"
 #include "Engine/Maps.h"
@@ -25,6 +26,15 @@ class PlayGame : public Helper, public Options {
 public:	// specific game rules
 
 public:	// globals
+
+	// Tile jars
+	LTexture gJar;
+	SDL_Rect rJar[6];
+	LTexture gRect;
+
+	// This lets us animate Tiles
+	std::vector<int> flowerTiles;
+	std::vector<int> flowerTiles2;
 
 public: // System variables
 	enum Result { Back, Nothing, StartGame, ShowingMenu, Exit };
@@ -266,10 +276,18 @@ private:	// used for some debugging
 	bool debug;
 	bool editor;
 	int mx, my;
+	int mex, mey;
+	int newMx, newMy;
 	bool quit;
 	bool ctrl;
 	bool shift;
 	SDL_Event event;
+	bool promptConfirm;
+	/*
+	 * 0: Loading
+	 * 1: Saving
+	 */
+	int promptType;
 
 	// Buttons for editor
 	bool rightClick = false;

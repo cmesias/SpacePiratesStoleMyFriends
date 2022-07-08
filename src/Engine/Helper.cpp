@@ -8,7 +8,17 @@
 #include <stdlib.h>
 #include <SDL2/SDL.h>
 #include "Helper.h"
+#include <math.h>
 
+float Helper::getDistance( float targetX, float targetY, float selfX, float selfY ) {
+
+	float distance = 1;
+
+	distance = sqrt((targetX - selfX) * (targetX - selfX)+
+					(targetY - selfY) * (targetY - selfY));
+
+	return distance;
+}
 
 bool Helper::checkCollision(int x, int y, int w, int h, int x2, int y2, int w2, int h2) {
 	bool collide;
